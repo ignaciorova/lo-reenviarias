@@ -39,7 +39,7 @@ El acceso exige dos cosas: una cuenta de Supabase Auth y un rol en `admin_profil
 
 Quitar el acceso desactiva el rol (queda en la auditoría); la cuenta de Auth puede borrarse aparte en Supabase.
 
-Recomendado en Supabase (*Authentication → Providers → Email*): desactivar el registro público (*Allow new users to sign up*), porque las cuentas las crea el owner.
+Recomendado en Supabase (*Authentication → Sign In / Providers → User Signups*): desactivar *Allow new users to sign up*, porque las cuentas las crea el owner (hecho el 9/10/2026). Poner también la URL del sitio en *Authentication → URL Configuration* para que el enlace de recuperación de contraseña lleve al panel.
 
 ## 4. Panel de investigación
 
