@@ -18,19 +18,19 @@
 | Despliegue de producción en https://lo-reenviarias.vercel.app | Despliegue READY en Vercel (commit `b1703a9`); cabeceras de seguridad leídas en `/admin` |
 | Aplicación pública contra el Supabase remoto | Dos partidas reales desde la URL pública (escritorio y celular) guardadas y con puntaje igual a SQL independiente |
 | Funciones `remove_response_code` y `purge_sessions` en remoto | Ejecutadas por Gerardo en el SQL Editor; cuerpo idéntico al del repositorio (MD5 igual salvo saltos de línea CRLF), `SECURITY DEFINER`, sin permiso para anon ni public |
+| Primera cuenta owner (ignaciorova@gmail.com) | Usuario creado por Gerardo en Supabase Auth; rol asignado por SQL; `is_admin` devuelve verdadero para owner, analyst y viewer con su identidad (transacción revertida) |
 | Documentación (9 documentos) | En `docs/` del repositorio y de esta carpeta |
 
 ## Implementado pero no verificado
 
 | Elemento | Por qué no |
 |---|---|
-| Inicio de sesión real en el panel contra Supabase Auth remoto | No existe ninguna cuenta owner todavía. Verificado solo con tokens locales. |
+| Inicio de sesión real en el panel contra Supabase Auth remoto | La cuenta owner ya existe y su rol se verificó por SQL; falta que Gerardo entre en `/admin` desde el navegador. |
 
 ## Pendiente por falta de acceso
 
 | Elemento | Qué se necesita |
 |---|---|
-| Primera cuenta owner | Crearla en Supabase Auth y asignar el rol ([manual-uso.md](manual-uso.md), sección 3). |
 
 ## Pendiente por decisión metodológica
 
