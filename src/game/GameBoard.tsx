@@ -4,7 +4,9 @@ import { NewsCard, type CardHandle } from './NewsCard'
 import { FeedbackSheet } from './FeedbackSheet'
 import { Notice, Spinner } from './ui'
 
-type Props = { payload: SessionPayloadT; reducedMotion: boolean; onDone: () => void }
+/** Llamadas al servidor que usa el tablero. El sandbox las reemplaza por una versión local que no guarda nada. */
+export type BoardClient = Pick<typeof api, 'submitDecision' | 'useHint'>
+type Props = { payload: SessionPayloadT; reducedMotion: boolean; onDone: () => void; client?: BoardClient }
 
 /** Reputación cosmética (igual que el original; no se guarda ni se analiza). */
 function reputation(decisions: FeedbackT[]) {
@@ -16,7 +18,7 @@ function reputation(decisions: FeedbackT[]) {
   return rep
 }
 
-export function GameBoard({ payload, reducedMotion, onDone }: Props) {
+export function GameBoard({ payload, reducedMotion, onDone, client = api }: Props) {
   const total = payload.items.length
   const seconds = payload.config.seconds_per_item
   const [decisions, setDecisions] = useState<FeedbackT[]>(payload.decisions)
@@ -46,7 +48,7 @@ export function GameBoard({ payload, reducedMotion, onDone }: Props) {
     setError(null)
     setSaving({ retry: 0 })
     try {
-      const fb = await api.submitDecision(payload.session_id, position, pd.choice, pd.ms, { onRetry: (n) => setSaving({ retry: n }) })
+      const fb = await client.submitDecision(payload.session_id, position, pd.choice, pd.ms, { onRetry: (n) => setSaving({ retry: n }) })
       pendingDecision.current = null
       setSaving(null)
       setSheet(fb)
@@ -54,7 +56,7 @@ export function GameBoard({ payload, reducedMotion, onDone }: Props) {
       setSaving(null)
       setError(friendlyMessage(e))
     }
-  }, [payload.session_id, position])
+  }, [payload.session_id, position, client])
 
   const decide = useCallback((choice: 'real' | 'falsa' | null) => {
     if (locked.current || !item) return
@@ -94,7 +96,7 @@ export function GameBoard({ payload, reducedMotion, onDone }: Props) {
     if (!item || hintBusy || locked.current || hints[String(position)] || hintsLeft <= 0) return
     setHintBusy(true)
     try {
-      const r = await api.useHint(payload.session_id, position)
+      const r = await client.useHint(payload.session_id, position)
       setHints((h) => ({ ...h, [String(position)]: r.hint }))
       setHintsLeft(r.hints_remaining)
     } catch (e) {
