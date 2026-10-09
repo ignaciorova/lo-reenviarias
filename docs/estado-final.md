@@ -17,6 +17,7 @@
 | Código publicado en GitHub | Rama `claude/plataforma-v2` de ignaciorova/lo-reenviarias, confirmada con `git ls-remote` |
 | Despliegue de producción en https://lo-reenviarias.vercel.app | Despliegue READY en Vercel (commit `b1703a9`); cabeceras de seguridad leídas en `/admin` |
 | Aplicación pública contra el Supabase remoto | Dos partidas reales desde la URL pública (escritorio y celular) guardadas y con puntaje igual a SQL independiente |
+| Funciones `remove_response_code` y `purge_sessions` en remoto | Ejecutadas por Gerardo en el SQL Editor; cuerpo idéntico al del repositorio (MD5 igual salvo saltos de línea CRLF), `SECURITY DEFINER`, sin permiso para anon ni public |
 | Documentación (9 documentos) | En `docs/` del repositorio y de esta carpeta |
 
 ## Implementado pero no verificado
@@ -29,7 +30,6 @@
 
 | Elemento | Qué se necesita |
 |---|---|
-| Funciones `remove_response_code` y `purge_sessions` en remoto | Ejecutar `supabase/manual/pendiente_remoto_funciones_delete.sql` en el SQL Editor (el conector pide confirmación humana para `DELETE`). |
 | Primera cuenta owner | Crearla en Supabase Auth y asignar el rol ([manual-uso.md](manual-uso.md), sección 3). |
 
 ## Pendiente por decisión metodológica

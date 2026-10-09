@@ -4,7 +4,7 @@ Fecha: 9 de octubre de 2026. Cada paso indica si se ejecutó y cómo se verific�
 
 ## 1. Supabase (proyecto `fieatocekvklctfkxgpa`, https://fieatocekvklctfkxgpa.supabase.co)
 
-**Estado: aplicado y verificado**, salvo dos funciones (sección 1.3).
+**Estado: aplicado y verificado.**
 
 ### 1.1 Migraciones aplicadas
 
@@ -16,7 +16,7 @@ El conector de Supabase agota el tiempo con archivos grandes y queda esperando u
 | 0001 `core_schema` | `core_schema_p1_studies_items` … `core_schema_p6_triggers` | RLS activado desde la creación de cada tabla. |
 | 0002 `seed_instrument` | `seed_instrument_v1`, `seed_instrument_v2` | La v2 copia preguntas y noticias de la v1 (en el archivo están literales; son idénticas salvo la fila del estudio). Verificado por hash MD5 contra la base local. |
 | 0003 `participant_api` | `participant_api_p1_helpers`, `_p2_session_survey_hint`, `_p3_decision_complete` | |
-| 0004 `admin_security` | `admin_security_p1_rls`, `_p2_views`, `_p3_admin_api` | Faltan `remove_response_code` y `purge_sessions`. |
+| 0004 `admin_security` | `admin_security_p1_rls`, `_p2_views`, `_p3_admin_api` | `remove_response_code` y `purge_sessions` se instalaron aparte desde el SQL Editor (sección 1.3). |
 | 0005 `legacy_migration` | `legacy_migration` | Aplicada completa. |
 
 Verificación: las 24 funciones y las 3 vistas remotas tienen el mismo hash MD5 de definición que las probadas localmente. Detalle en [evidencia-pruebas.md](evidencia-pruebas.md), sección 4.
@@ -29,7 +29,7 @@ Verificación: las 24 funciones y las 3 vistas remotas tienen el mismo hash MD5 
 
 ### 1.3 Pendiente en Supabase (requiere a una persona)
 
-1. **Instalar dos funciones:** abrir *SQL Editor*, pegar `supabase/manual/pendiente_remoto_funciones_delete.sql` y ejecutar. Habilita «quitar código» en Preguntas abiertas y la depuración de datos. Sin esto, esos dos botones muestran un error; nada más se ve afectado.
+1. ~~Instalar dos funciones~~ **Hecho el 9 de octubre (21:54 UTC):** Gerardo ejecutó `supabase/manual/pendiente_remoto_funciones_delete.sql` en el *SQL Editor*. Verificado por consulta: ambas existen como `SECURITY DEFINER` con `search_path` vacío, solo `authenticated` puede ejecutarlas y su cuerpo coincide con el del repositorio (mismo MD5 tras normalizar los saltos de línea CRLF del pegado).
 2. **Crear la primera cuenta owner** (no existe ninguna): pasos en [manual-uso.md](manual-uso.md), sección 3.
 3. Recomendado: en *Authentication → Providers → Email*, desactivar el registro público de cuentas; y en *Authentication → URL Configuration*, poner la URL definitiva del sitio.
 
