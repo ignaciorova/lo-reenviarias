@@ -13,7 +13,9 @@ cp .env.example .env.local   # solo valores públicos: URL y clave publicable
 npm run dev
 ```
 
-Despliegue en Vercel o Netlify: importar el repositorio y definir las tres variables de `.env.example`. La configuración de rutas y cabeceras de seguridad ya está en `vercel.json` y `netlify.toml`. Pasos completos en [docs/registro-despliegue.md](docs/registro-despliegue.md).
+**Producción:** https://lo-reenviarias.vercel.app (Vercel, rama `claude/plataforma-v2`).
+
+Para otro despliegue en Vercel o Netlify: importar el repositorio y definir las tres variables de `.env.example`. La configuración de rutas y cabeceras de seguridad ya está en `vercel.json` y `netlify.toml`. Pasos completos en [docs/registro-despliegue.md](docs/registro-despliegue.md).
 
 ## Pruebas
 

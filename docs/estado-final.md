@@ -15,6 +15,8 @@
 | Estadística e indicadores | 11 pruebas unitarias |
 | Compilación de producción sin secretos | `npm run build` y búsqueda de claves |
 | Código publicado en GitHub | Rama `claude/plataforma-v2` de ignaciorova/lo-reenviarias, confirmada con `git ls-remote` |
+| Despliegue de producción en https://lo-reenviarias.vercel.app | Despliegue READY en Vercel (commit `b1703a9`); cabeceras de seguridad leídas en `/admin` |
+| Aplicación pública contra el Supabase remoto | Dos partidas reales desde la URL pública (escritorio y celular) guardadas y con puntaje igual a SQL independiente |
 | Documentación (9 documentos) | En `docs/` del repositorio y de esta carpeta |
 
 ## Implementado pero no verificado
@@ -22,14 +24,11 @@
 | Elemento | Por qué no |
 |---|---|
 | Inicio de sesión real en el panel contra Supabase Auth remoto | No existe ninguna cuenta owner todavía. Verificado solo con tokens locales. |
-| Aplicación funcionando contra el Supabase remoto desde un navegador | Esta sesión no tiene red hacia supabase.co. La API remota se probó por SQL, no por HTTP. |
-| Cabeceras de seguridad (CSP) en producción | No hay despliegue. |
 
 ## Pendiente por falta de acceso
 
 | Elemento | Qué se necesita |
 |---|---|
-| Despliegue en Vercel o Netlify y URL pública | Importar el repositorio en Vercel con las 3 variables públicas ([registro-despliegue.md](registro-despliegue.md), sección 3). |
 | Funciones `remove_response_code` y `purge_sessions` en remoto | Ejecutar `supabase/manual/pendiente_remoto_funciones_delete.sql` en el SQL Editor (el conector pide confirmación humana para `DELETE`). |
 | Primera cuenta owner | Crearla en Supabase Auth y asignar el rol ([manual-uso.md](manual-uso.md), sección 3). |
 

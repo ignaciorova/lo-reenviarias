@@ -37,21 +37,16 @@ Verificación: las 24 funciones y las 3 vistas remotas tienen el mismo hash MD5 
 
 **Estado: publicado y verificado.** Rama `claude/plataforma-v2` en https://github.com/ignaciorova/lo-reenviarias (el repositorio estaba vacío; esta rama es ahora su contenido). Verificado con `git ls-remote`.
 
-## 3. Alojamiento (Vercel o Netlify)
+## 3. Alojamiento (Vercel)
 
-**Estado: pendiente por falta de acceso.** Esta sesión no tiene conector de Vercel ni de Netlify y su red no llega a sus API. **No existe todavía una URL pública.**
+**Estado: desplegado y verificado.** URL pública: https://lo-reenviarias.vercel.app
 
-Pasos para Vercel (unos minutos):
+- Proyecto de Vercel `lo-reenviarias`, rama de producción `claude/plataforma-v2`, con las 3 variables públicas de `.env.example` en Production y Preview (configurado por Gerardo).
+- Primer despliegue de producción: commit `b1703a9`, despliegue `dpl_7krqCEa6UqQVgtuzwWzRZZd4nwjX`, estado READY. GitHub registra «Vercel: success» en ese commit.
+- `/admin` responde 200 con CSP, `X-Frame-Options: DENY`, HSTS y `X-Robots-Tag: noindex`.
+- Conexión con Supabase verificada por datos: dos partidas reales jugadas desde la URL pública (escritorio y celular, 9 de octubre, 21:21 y 21:27 UTC) quedaron guardadas como 2.0.0, completas, con aciertos y puntajes iguales a un cálculo SQL independiente. Deben marcarse como prueba.
 
-1. https://vercel.com/new → importar `ignaciorova/lo-reenviarias`, rama `claude/plataforma-v2` (o fusionarla en `main` antes).
-2. *Framework preset:* Vite. Comando `npm run build`, salida `dist` (Vercel lo detecta).
-3. *Environment Variables* (valores públicos, también en `.env.example`):
-   - `VITE_SUPABASE_URL` = `https://fieatocekvklctfkxgpa.supabase.co`
-   - `VITE_SUPABASE_PUBLISHABLE_KEY` = `sb_publishable_NnpgZDJXq_zgCxNmMmG8oQ_g5UqWoiO`
-   - `VITE_STUDY_CODE` = `lo-reenviarias`
-4. *Deploy.* `vercel.json` ya define la reescritura de rutas (para que `/admin` funcione al recargar) y las cabeceras de seguridad.
-
-Netlify: igual, con `netlify.toml` ya incluido.
+Cada push a `claude/plataforma-v2` genera un despliegue de producción nuevo.
 
 ### Verificación después de desplegar
 
@@ -63,4 +58,4 @@ Netlify: igual, con `netlify.toml` ya incluido.
 
 ## 4. HTML original
 
-Las copias del HTML original que sigan circulando todavía pueden **guardar** respuestas (en la tabla original) pero ya no pueden **leer** ninguna: su pantalla `#resultados` y la comparación con otras personas dejarán de mostrar datos (no se probó cómo se ve ese error en el HTML original). Se recomienda reemplazar el enlace antiguo por el nuevo en cuanto exista la URL.
+Las copias del HTML original que sigan circulando todavía pueden **guardar** respuestas (en la tabla original) pero ya no pueden **leer** ninguna: su pantalla `#resultados` y la comparación con otras personas dejarán de mostrar datos (no se probó cómo se ve ese error en el HTML original). Se recomienda reemplazar el enlace antiguo por https://lo-reenviarias.vercel.app.
