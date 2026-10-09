@@ -27,7 +27,7 @@ Nada pendiente en esta categoría.
 
 ## Pendiente por falta de acceso
 
-Nada. Quedan solo tareas de configuración recomendadas para Gerardo: marcar como prueba sus partidas del 9/10, desactivar el registro público en Supabase Auth y decidir qué hacer con el usuario de Auth sin rol.
+Nada. Quedan solo tareas de configuración recomendadas para Gerardo: marcar como prueba sus partidas del 9/10, poner la URL del sitio en Supabase Auth y decidir qué hacer con el usuario de Auth sin rol.
 
 ## Pendiente por decisión metodológica
 

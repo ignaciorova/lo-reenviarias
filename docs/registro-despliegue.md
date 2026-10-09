@@ -31,7 +31,7 @@ Verificación: las 24 funciones y las 3 vistas remotas tienen el mismo hash MD5 
 
 1. ~~Instalar dos funciones~~ **Hecho el 9 de octubre (21:54 UTC):** Gerardo ejecutó `supabase/manual/pendiente_remoto_funciones_delete.sql` en el *SQL Editor*. Verificado por consulta: ambas existen como `SECURITY DEFINER` con `search_path` vacío, solo `authenticated` puede ejecutarlas y su cuerpo coincide con el del repositorio (mismo MD5 tras normalizar los saltos de línea CRLF del pegado).
 2. ~~Crear la primera cuenta owner~~ **Hecho el 9 de octubre (21:56 UTC):** Gerardo creó `ignaciorova@gmail.com` en Supabase Auth y se le asignó el rol `owner` en `admin_profiles`. Verificado simulando su sesión dentro de una transacción revertida. Gerardo inició sesión en el panel de producción a las 22:08 UTC, después de fijar su contraseña desde el SQL Editor (el correo de recuperación había alcanzado el límite de envíos). Existe otro usuario de Auth sin confirmar y sin rol, que no tiene acceso al panel.
-3. Recomendado: en *Authentication → Providers → Email*, desactivar el registro público de cuentas; y en *Authentication → URL Configuration*, poner la URL definitiva del sitio.
+3. Registro público de cuentas: **desactivado por Gerardo el 9/10 a las 22:14 UTC** (*Authentication → Sign In / Providers → User Signups*), según lo que informó; esta sesión no tiene acceso a la configuración de Auth para comprobarlo. El juego no depende de Supabase Auth. Sigue recomendado poner https://lo-reenviarias.vercel.app en *Authentication → URL Configuration → Site URL*.
 
 ## 2. Código
 
