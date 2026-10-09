@@ -7,7 +7,7 @@ test('sandbox de noticias ilustradas: ronda completa sin llamadas al servidor', 
   await page.goto('/sandbox')
   external.length = 0
   await page.getByRole('button', { name: 'Jugar con imágenes' }).click()
-  await expect(page.getByRole('img', { name: /bus de la ruta 220/ })).toBeVisible()
+  await expect(page.getByRole("img", { name: /bus blanco y verde/ })).toBeVisible()
   await page.getByRole('button', { name: /Real/ }).click()
   await expect(page.getByRole('heading', { name: '¡Bien! Era real' })).toBeVisible()
   await page.getByRole('button', { name: 'Siguiente noticia' }).click()
@@ -21,7 +21,7 @@ test('sandbox de noticias ilustradas: ronda completa sin llamadas al servidor', 
   await page.getByRole('button', { name: 'Terminar' }).click()
   await expect(page.getByText('Con imágenes: 4 de 4 correctas')).toBeVisible()
   await page.getByRole('button', { name: 'Jugar sin imágenes (versión actual)' }).click()
-  await expect(page.getByRole('img', { name: /bus de la ruta 220/ })).toHaveCount(0)
+  await expect(page.getByRole("img", { name: /bus blanco y verde/ })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: /pasaje de una ruta de bus/ })).toBeVisible()
   expect(external).toEqual([])
 })

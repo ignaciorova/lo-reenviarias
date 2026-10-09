@@ -7,7 +7,8 @@ import { Logo, PrimaryButton } from './ui'
 /*
  * SANDBOX de la versión 3.0.0 (noticias ilustradas). Solo existe en la rama claude/sandbox-noticias-ilustradas.
  * Todo ocurre en el navegador: no llama a Supabase y no guarda ninguna respuesta.
- * Textos, pistas y explicaciones copiados sin cambios del instrumento 2.0.0; imágenes propias (public/sandbox/).
+ * Textos, pistas y explicaciones copiados sin cambios del instrumento 2.0.0. Medios en public/sandbox/: bus y embajada generados
+ * con IA (Canva), plenario aportado por el equipo (licencia por confirmar), «comunicado» de SINPE dibujado en SVG.
  */
 type Demo = { key: string; headline: string; isReal: boolean; display: ItemT['display']; media: Media; explanation: string; hint: string; redFlags: string[]; source: string | null }
 
@@ -16,7 +17,7 @@ const DEMO: Demo[] = [
     key: 'r_bus', isReal: true,
     headline: 'El pasaje de una ruta de bus en Alajuela pasó de ₡260 a ₡1.000',
     display: { who: 'Vecina Lucía', many: true, band: 'INDIGNANTE', bg: 'linear-gradient(135deg,#00695C,#4DB6AC)', emo: '🚌', emo2: '💸' },
-    media: { kind: 'image', src: '/sandbox/bus.svg', alt: 'Ilustración: bus de la ruta 220 Alajuela junto a un rótulo con el pasaje de ₡260 tachado y ₡1.000 en rojo', frame: 'whatsapp' },
+    media: { kind: 'image', src: '/sandbox/bus.jpg', alt: 'Foto: personas caminando hacia un bus blanco y verde junto a un cartón escrito a mano que dice que el pasaje pasa de ₡260 a ₡1.000', frame: 'whatsapp', credit: 'Imagen generada con IA · juego académico', focus: '20% 50%' },
     explanation: 'Es real. La Teja lo publicó el 2 de octubre de 2026.', hint: 'Lo publicó La Teja el 2 de octubre de 2026.', redFlags: [], source: 'La Teja',
   },
   {
@@ -31,14 +32,14 @@ const DEMO: Demo[] = [
     key: 'r_cuba', isReal: true,
     headline: 'Costa Rica rompe relaciones diplomáticas con Cuba y ordena cerrar su embajada',
     display: { who: 'Mamá', many: false, band: 'INTERNACIONAL', bg: 'linear-gradient(135deg,#0B3D91,#CF142B)', emo: '🏛️', emo2: '✂️' },
-    media: { kind: 'video', src: '/sandbox/cuba.mp4', webm: '/sandbox/cuba.webm', poster: '/sandbox/cuba-poster.jpg', alt: 'Clip corto sin sonido: acercamiento a una embajada con la reja cerrada y un letrero de «Cerrado»', frame: 'tiktok' },
+    media: { kind: 'video', src: '/sandbox/cuba.mp4', webm: '/sandbox/cuba.webm', poster: '/sandbox/cuba-poster.jpg', alt: 'Clip corto sin sonido: una embajada con el portón cerrado con candado, un aviso pegado en la reja y el asta sin bandera', frame: 'tiktok', credit: 'Imagen generada con IA · juego académico' },
     explanation: 'Es real. Sucedió el 18 de marzo de 2026.', hint: 'Se publicó en medios nacionales e internacionales en marzo de 2026.', redFlags: [], source: 'CBS News',
   },
   {
     key: 'f_ejercito', isReal: false,
     headline: 'URGENTE: la Asamblea Legislativa aprobó en primer debate volver a crear el ejército',
     display: { who: 'Tío Fernando', many: true, band: 'URGENTE', bg: 'linear-gradient(135deg,#33691E,#827717)', emo: '🪖', emo2: '🇨🇷' },
-    media: { kind: 'image', src: '/sandbox/ejercito.svg', alt: 'Montaje de «Última hora» con un plenario y un tablero de votación 38 a favor y 19 en contra', frame: 'facebook' },
+    media: { kind: 'image', src: '/sandbox/plenario.jpg', alt: 'Foto del plenario vacío de la Asamblea Legislativa de Costa Rica', frame: 'facebook', credit: 'Foto de referencia · fuente por confirmar' },
     explanation: 'Es inventada para este juego.', hint: 'Abolir el ejército está en la Constitución; cambiarlo sería un hecho histórico con cobertura mundial.',
     redFlags: ['Mayúsculas y "URGENTE" para generar alarma.', 'Sería una reforma constitucional: imposible que pase en silencio.', 'No hay votación registrada ni medio que lo publique.'], source: null,
   },
@@ -128,7 +129,7 @@ export default function SandboxApp() {
           <p className="text-[#E6DCEF]">
             {stage === 'done'
               ? (withMedia ? 'Prueba la misma ronda sin imágenes para comparar. Fíjate si la imagen te hizo dudar menos o decidir más rápido.' : 'Así se ve la versión actual. Prueba con imágenes para comparar.')
-              : '4 noticias del juego (2 reales y 2 falsas) presentadas como llegarían por WhatsApp, Facebook o TikTok. Los textos, las pistas y el puntaje son los del juego actual; las imágenes son ilustraciones propias y el clip no tiene sonido.'}
+              : '4 noticias del juego (2 reales y 2 falsas) presentadas como llegarían por WhatsApp, Facebook o TikTok. Los textos, las pistas y el puntaje son los del juego actual; dos fotos están generadas con IA, el plenario es una foto de referencia y el clip no tiene sonido.'}
           </p>
           <PrimaryButton onClick={() => start(true)}>{stage === 'done' && withMedia ? 'Repetir con imágenes' : 'Jugar con imágenes'}</PrimaryButton>
           <PrimaryButton alt onClick={() => start(false)}>Jugar sin imágenes (versión actual)</PrimaryButton>
