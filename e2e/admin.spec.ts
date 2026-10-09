@@ -158,3 +158,26 @@ test.describe('Panel de investigación', () => {
     expect(sql(`select 1 from audit_events where action = 'purge_sessions'`).length).toBeGreaterThanOrEqual(1)
   })
 })
+
+test('enlace de recuperación: pide la contraseña nueva y la guarda', async ({ page }) => {
+  const user = { id: '00000000-0000-4000-8000-0000000000cc', email: 'recupera-e2e@test.local', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() }
+  let saved: unknown = null
+  await page.route('**/auth/v1/user', async (route) => {
+    if (route.request().method() === 'PUT') saved = route.request().postDataJSON()
+    await route.fulfill({ json: user })
+  })
+  await page.route('**/rest/v1/rpc/my_admin_profile', (route) => route.fulfill({ json: null }))
+  const exp = Math.floor(Date.now() / 1000) + 3600
+  await page.goto(`/admin#access_token=recovery-e2e&refresh_token=r&expires_in=3600&expires_at=${exp}&token_type=bearer&type=recovery`)
+  await expect(page.getByRole('heading', { name: 'Nueva contraseña' })).toBeVisible()
+  await page.getByLabel('Contraseña nueva').fill('corta')
+  await page.getByLabel('Repítela').fill('corta')
+  await page.getByRole('button', { name: 'Guardar contraseña' }).click()
+  await expect(page.getByRole('alert')).toContainText('al menos 12')
+  await page.getByLabel('Contraseña nueva').fill('una-contraseña-larga')
+  await page.getByLabel('Repítela').fill('una-contraseña-larga')
+  await page.getByRole('button', { name: 'Guardar contraseña' }).click()
+  await expect(page.getByRole('heading', { name: 'Sin permisos' })).toBeVisible()
+  expect(saved).toMatchObject({ password: 'una-contraseña-larga' })
+  expect(page.url()).not.toContain('access_token')
+})

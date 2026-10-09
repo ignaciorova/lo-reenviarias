@@ -19,13 +19,18 @@ import Admins from './pages/Admins'
 export default function AdminApp() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const [profile, setProfile] = useState<AdminProfile | null | undefined>(undefined)
+  // El enlace de «Olvidé mi contraseña» abre /admin con una sesión de recuperación: hay que pedir la nueva contraseña.
+  const [recovering, setRecovering] = useState(() => location.hash.includes('type=recovery'))
 
   useEffect(() => {
     document.title = 'Panel de investigación · ¿Lo reenviarías?'
     if (!isConfigured) { setSession(null); return }
     const sb = supabase()
     sb.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s))
+    const { data: sub } = sb.auth.onAuthStateChange((e, s) => {
+      if (e === 'PASSWORD_RECOVERY') setRecovering(true)
+      setSession(s)
+    })
     return () => sub.subscription.unsubscribe()
   }, [])
 
@@ -40,6 +45,8 @@ export default function AdminApp() {
         <div className="grid min-h-dvh place-items-center text-muted">Verificando acceso…</div>
       ) : !session ? (
         <Login />
+      ) : recovering ? (
+        <SetPassword email={session.user.email ?? ''} onDone={() => setRecovering(false)} />
       ) : !profile ? (
         <NoAccess email={session.user.email ?? ''} />
       ) : (
@@ -82,6 +89,38 @@ function Login() {
         {msg && <p role={msg.kind === 'error' ? 'alert' : 'status'} className={`mb-3 rounded-lg p-3 text-sm ${msg.kind === 'error' ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-800'}`}>{msg.text}</p>}
         <button disabled={busy || !isConfigured} className="w-full rounded-lg bg-u py-2.5 font-bold text-white hover:bg-u2 disabled:opacity-50">{busy ? 'Ingresando…' : 'Ingresar'}</button>
         <button type="button" onClick={() => void reset()} className="mt-3 w-full text-sm text-u underline underline-offset-4">Olvidé mi contraseña</button>
+      </form>
+    </main>
+  )
+}
+
+function SetPassword({ email, onDone }: { email: string; onDone: () => void }) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [msg, setMsg] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (password.length < 12) { setMsg('La contraseña debe tener al menos 12 caracteres.'); return }
+    if (password !== confirm) { setMsg('Las contraseñas no coinciden.'); return }
+    setBusy(true); setMsg(null)
+    const { error } = await supabase().auth.updateUser({ password })
+    setBusy(false)
+    if (error) { setMsg('No se pudo guardar la contraseña. Pide un enlace nuevo e inténtalo otra vez.'); return }
+    history.replaceState(null, '', location.pathname)
+    onDone()
+  }
+  return (
+    <main className="grid min-h-dvh place-items-center px-4">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border border-black/5 bg-white p-6 shadow-sm">
+        <h1 className="font-display text-2xl font-bold">Nueva contraseña</h1>
+        <p className="mb-5 text-sm text-muted">Para la cuenta <b>{email}</b>.</p>
+        <label className="mb-1 block text-sm font-bold" htmlFor="new-pw">Contraseña nueva</label>
+        <input id="new-pw" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mb-3 w-full rounded-lg border border-soft px-3 py-2.5" />
+        <label className="mb-1 block text-sm font-bold" htmlFor="new-pw2">Repítela</label>
+        <input id="new-pw2" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="mb-4 w-full rounded-lg border border-soft px-3 py-2.5" />
+        {msg && <p role="alert" className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{msg}</p>}
+        <button disabled={busy} className="w-full rounded-lg bg-u py-2.5 font-bold text-white hover:bg-u2 disabled:opacity-50">{busy ? 'Guardando…' : 'Guardar contraseña'}</button>
       </form>
     </main>
   )

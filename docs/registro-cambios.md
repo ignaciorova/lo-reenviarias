@@ -30,6 +30,7 @@ Los cambios se separan en **técnicos** (no alteran lo que se mide) y **metodol�
 | T8 | Fuentes autoalojadas; cabeceras de seguridad; protección contra XSS e inyección de fórmulas en CSV. |
 | T9 | Accesibilidad: botones y teclado además del gesto; contador anunciado a lectores de pantalla. |
 | T10 | Migraciones sin sentencias `DROP`: los objetos se crean con `if not exists` / `create or replace`, y las políticas antiguas se neutralizan con `alter policy` en lugar de borrarse. |
+| T11 | Corrección (9/10/2026): el enlace de «Olvidé mi contraseña» abría el panel sin pedir la contraseña nueva. Ahora muestra el formulario «Nueva contraseña» (mínimo 12 caracteres) y la guarda con `auth.updateUser`. Prueba E2E con las llamadas de Auth simuladas: falla sin la corrección y pasa con ella. No cambia el juego ni el instrumento. |
 
 ## Instrumento 1.0.0 (cerrado)
 
