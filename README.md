@@ -36,6 +36,7 @@ npm run test:e2e    # Playwright, móvil y escritorio (ver docs/evidencia-prueba
 | [registro-despliegue.md](docs/registro-despliegue.md) | Qué se aplicó, dónde y qué falta. |
 | [privacidad-y-conservacion.md](docs/privacidad-y-conservacion.md) | Datos recolectados, acceso y conservación. |
 | [revision-metodologica.md](docs/revision-metodologica.md) | Validez, limitaciones y propuestas para 3.0.0. |
+| [estado-final.md](docs/estado-final.md) | Qué está verificado, qué falta y por qué. |
 
 ## Seguridad
 
