@@ -27,6 +27,9 @@ export const DICTIONARY: Var[] = [
   { dataset: 'participantes', variable: 'fake_accepted_count', tipo: 'entero', unidad: 'noticias', definicion: 'Noticias falsas clasificadas como reales (deslizadas a «Real / La reenvío»).' },
   { dataset: 'participantes', variable: 'real_rejected_count', tipo: 'entero', unidad: 'noticias', definicion: 'Noticias reales clasificadas como falsas.' },
   { dataset: 'participantes', variable: 'simulated_reach_total', tipo: 'entero', unidad: 'personas (ficticias)', definicion: 'Suma del alcance ILUSTRATIVO aleatorio (900–5099 por cada falsa aceptada). No es difusión real; no usar como variable de resultado.' },
+  { dataset: 'participantes', variable: 'automation_signals', tipo: 'lista (separada por |)', unidad: '—', definicion: 'Señales de actividad automatizada calculadas en el servidor con horas del servidor: rafaga (informativa), partida_rapida, decisiones_rapidas, ritmo_constante. Ver docs/integridad-estudio.md.' },
+  { dataset: 'participantes', variable: 'automation_flagged', tipo: 'booleano', unidad: '—', definicion: 'Tiene alguna señal distinta de «rafaga» y no fue revisada como «humana». Excluida de is_valid, del ranking y de las estadísticas públicas. La fila se conserva.' },
+  { dataset: 'participantes', variable: 'automation_review', tipo: 'categórica', unidad: '—', definicion: '«humana» si una persona del equipo revisó la sesión y anuló la exclusión (queda en la auditoría).' },
   { dataset: 'decisiones', variable: 'position', tipo: 'entero 1–10', unidad: '—', definicion: 'Orden en que se presentó la noticia (aleatorio por sesión). Nulo en datos 1.0.0 (el original no lo guardaba).' },
   { dataset: 'decisiones', variable: 'item_key', tipo: 'texto', unidad: '—', definicion: 'Identificador estable de la noticia (r_ = real, f_ = falsa en el catálogo).' },
   { dataset: 'decisiones', variable: 'category', tipo: 'categórica', unidad: '—', definicion: 'Tema de la noticia.' },
@@ -46,8 +49,8 @@ const bool = (b: boolean | null | undefined) => (b === null || b === undefined ?
 export function sessionsTable(rows: SessionRow[]): Table {
   const cols = ['session_id', 'instrument_version', 'origin', 'status_effective', 'is_valid', 'is_test', 'exclusion_reason', 'started_at', 'completed_at', 'duration_seconds', 'device_class',
     'opinion', 'verifica', 'compartio_falso', 'responsable', 'post_cambio', 'decisions_count', 'correct_count', 'error_count', 'timeout_count', 'score', 'hints_used',
-    'fake_total', 'fake_accepted_count', 'real_total', 'real_rejected_count', 'simulated_reach_total'] as const
-  return { name: 'participantes', columns: [...cols], rows: rows.map((r) => cols.map((c) => { const v = r[c as keyof SessionRow]; return typeof v === 'boolean' ? bool(v) : (v as Cell) })) }
+    'fake_total', 'fake_accepted_count', 'real_total', 'real_rejected_count', 'simulated_reach_total', 'automation_signals', 'automation_flagged', 'automation_review'] as const
+  return { name: 'participantes', columns: [...cols], rows: rows.map((r) => cols.map((c) => { const v = r[c as keyof SessionRow]; return typeof v === 'boolean' ? bool(v) : Array.isArray(v) ? v.join('|') : (v ?? null) as Cell })) }
 }
 
 export function decisionsTable(rows: DecisionRow[]): Table {

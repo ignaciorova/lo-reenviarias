@@ -7,7 +7,7 @@ import { aliasText, randomAlias, type AliasPick } from './aliases'
  * al final, con un apodo armado de listas fijas: nada de nombres ni texto libre.
  */
 export function Leaderboard({ sessionId }: { sessionId: string }) {
-  const [state, setState] = useState<{ canJoin: boolean; top: LbRowT[] } | null>(null)
+  const [state, setState] = useState<{ canJoin: boolean; eligible: boolean; top: LbRowT[] } | null>(null)
   const [picking, setPicking] = useState(false)
   const [pick, setPick] = useState<AliasPick>(() => randomAlias())
   const [mine, setMine] = useState<{ alias: string; rank: number } | null>(null)
@@ -17,7 +17,7 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
   useEffect(() => {
     let alive = true
     api.leaderboardStatus(sessionId)
-      .then((s) => { if (alive && s.enabled) setState({ canJoin: !!s.can_join, top: s.top ?? [] }) })
+      .then((s) => { if (alive && s.enabled) setState({ canJoin: !!s.can_join, eligible: s.eligible !== false, top: s.top ?? [] }) })
       .catch(() => { /* sin tabla: la pantalla final sigue igual */ })
     return () => { alive = false }
   }, [sessionId])
@@ -28,7 +28,9 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
     setBusy(true); setError(null)
     try {
       const r = await api.joinLeaderboard(sessionId, pick.animal, pick.adj, pick.num)
-      setMine({ alias: r.alias, rank: r.rank }); setState({ canJoin: false, top: r.top }); setPicking(false)
+      if (r.eligible === false || !r.alias || r.rank === undefined) setState({ canJoin: false, eligible: false, top: r.top })
+      else { setMine({ alias: r.alias, rank: r.rank }); setState({ canJoin: false, eligible: true, top: r.top }) }
+      setPicking(false)
     } catch {
       setError('No se pudo guardar. Inténtalo de nuevo.')
     } finally { setBusy(false) }
@@ -50,6 +52,7 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
           ))}
         </ol>
       )}
+      {!state.eligible && !mine && <p className="mt-2 text-sm text-muted">Esta partida no entra en el ranking.</p>}
       {state.canJoin && !picking && (
         <button onClick={() => setPicking(true)} className="mt-3 w-full rounded-full border-2 border-u py-2.5 font-bold text-u">Entrar al ranking (opcional)</button>
       )}

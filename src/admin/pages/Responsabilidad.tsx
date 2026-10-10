@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { fetchAll } from '../data'
+import { fetchAll, useData } from '../data'
+import { canExport, exportDataset, VIEWER_EXPORT_NOTE } from '../exportDataset'
 import { DataTable, Empty, Kpi, Section, TestResultView, FAKE, GREY, PURPLE, REAL } from '../components'
 import { supabase } from '../../lib/supabase'
 import { fmtPct } from '../../analytics/stats'
@@ -52,7 +53,7 @@ export default function Responsabilidad() {
         <button onClick={() => void load()} disabled={loading} className="ml-auto rounded-md border border-soft px-3 py-1 hover:bg-lav disabled:opacity-50">{loading ? 'Cargando…' : 'Actualizar'}</button>
       </div>
       {error && <p role="alert" className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-      {m && (m.sessions.length === 0 ? <Empty>Todavía no hay partidas de la versión 4.x.</Empty> : <Body m={m} firstOnly={firstOnly} />)}
+      {m && (m.sessions.length === 0 ? <Empty>Todavía no hay partidas de la versión 4.x.</Empty> : <Body m={m} firstOnly={firstOnly} reload={load} />)}
     </div>
   )
 }
@@ -74,15 +75,17 @@ function compute(all: ShareSessionRow[], allDecisions: ShareDecisionRow[], versi
 }
 type M = ReturnType<typeof compute>
 
-function Body({ m, firstOnly }: { m: M; firstOnly: boolean }) {
+function Body({ m, firstOnly, reload }: { m: M; firstOnly: boolean; reload: () => Promise<void> }) {
   const { sum, flow } = m
   return (
     <>
+      <Integrity sessions={m.sessions} reload={reload} />
       <Section title="Muestra de análisis" description="Cada sesión excluida cae en un solo motivo, en este orden.">
         <ol className="grid gap-1 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Flow n={flow.total} l="sesiones de la 4.x" />
           <Flow n={-flow.test} l="de prueba" />
           <Flow n={-flow.excluded} l="excluidas por calidad" />
+          <Flow n={-flow.automated} l="con señales de actividad automatizada" />
           <Flow n={-flow.incomplete} l="incompletas (E8: se informan aparte)" />
           {firstOnly && <Flow n={-flow.replay} l="repeticiones (no es la primera partida)" />}
           <Flow n={-flow.allTimeout} l="sin ninguna respuesta (todo E7)" />
@@ -212,20 +215,95 @@ function Limits({ children }: { children: ReactNode }) {
 }
 
 function Exports({ sessions, decisions, included }: { sessions: ShareSessionRow[]; decisions: ShareDecisionRow[]; included: ShareSessionRow[] }) {
+  const { profile } = useData()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const allowed = canExport(profile)
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16)
   const base = `lo-reenviarias_v4_${stamp}`
-  const log = (dataset: string, format: string, rows: number) => void supabase().rpc('log_export', { p_details: { dataset, format, rows } }).then(() => undefined)
-  const csv = (t: ReturnType<typeof v4SessionsTable>) => { download(`${base}_${t.name}.csv`, toCSV(t), 'text/csv;charset=utf-8'); log(t.name, 'csv', t.rows.length) }
   const incIds = new Set(included.map((s) => s.session_id))
+  // Las filas las entrega el servidor (export_dataset), que registra cada descarga en la auditoría.
+  const getS = (rows: ShareSessionRow[], descripcion: string, formato: 'csv' | 'xlsx') =>
+    exportDataset<ShareSessionRow>('v4_sesiones', { rowIds: rows.map((s) => s.session_id), descripcion, formato })
+  const getD = (formato: 'csv' | 'xlsx') =>
+    exportDataset<ShareDecisionRow>('v4_decisiones', { rowIds: decisions.map((d) => d.decision_id), descripcion: 'decisiones de la muestra incluida', formato })
+  const run = async (fn: () => Promise<void>) => {
+    setBusy(true); setErr(null)
+    try { await fn() } catch (e) { setErr(e instanceof Error ? e.message : 'No se pudo exportar.') } finally { setBusy(false) }
+  }
+  const csv = (t: ReturnType<typeof v4SessionsTable>) => download(`${base}_${t.name}.csv`, toCSV(t), 'text/csv;charset=utf-8')
+  const off = !allowed || busy
+  const btn = 'rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav disabled:cursor-not-allowed disabled:opacity-50'
   return (
-    <Section title="Exportar (4.x)" description="Todas las sesiones de la versión elegida, con la columna «valida» y los indicadores por sesión. Las decisiones exportadas son las de la muestra incluida. Cada descarga queda en la auditoría.">
+    <Section title="Exportar (4.x)" description="Todas las sesiones de la versión elegida, con la columna «valida», las señales de integridad y los indicadores por sesión. Las decisiones exportadas son las de la muestra incluida. Las filas las entrega el servidor y cada descarga queda en la auditoría.">
+      {!allowed && <p role="note" className="mb-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{VIEWER_EXPORT_NOTE}</p>}
+      {err && <p role="alert" className="mb-2 rounded-lg bg-red-50 p-3 text-sm text-red-800">{err}</p>}
       <div className="flex flex-wrap gap-2">
-        <button onClick={() => { const ts = [v4SessionsTable(sessions), v4DecisionsTable(decisions), v4DictionaryTable()]; download(`${base}.xlsx`, toXLSX(ts), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); log('v4_completo', 'xlsx', sessions.length) }} className="rounded-lg bg-u px-4 py-2 font-bold text-white">Excel (.xlsx)</button>
-        <button onClick={() => csv(v4SessionsTable(sessions))} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Participantes (CSV)</button>
-        <button onClick={() => csv(v4SessionsTable(sessions.filter((s) => incIds.has(s.session_id))))} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Solo muestra incluida (CSV)</button>
-        <button onClick={() => csv(v4DecisionsTable(decisions))} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Decisiones (CSV)</button>
-        <button onClick={() => csv(v4DictionaryTable())} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Diccionario (CSV)</button>
+        <button disabled={off} onClick={() => void run(async () => { const ts = [v4SessionsTable(await getS(sessions, 'todas las sesiones de la versión elegida', 'xlsx')), v4DecisionsTable(await getD('xlsx')), v4DictionaryTable()]; download(`${base}.xlsx`, toXLSX(ts), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') })} className="rounded-lg bg-u px-4 py-2 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Excel (.xlsx)</button>
+        <button disabled={off} onClick={() => void run(async () => csv(v4SessionsTable(await getS(sessions, 'todas las sesiones de la versión elegida', 'csv'))))} className={btn}>Participantes (CSV)</button>
+        <button disabled={off} onClick={() => void run(async () => csv(v4SessionsTable(await getS(sessions.filter((s) => incIds.has(s.session_id)), 'muestra incluida', 'csv'))))} className={btn}>Solo muestra incluida (CSV)</button>
+        <button disabled={off} onClick={() => void run(async () => csv(v4DecisionsTable(await getD('csv'))))} className={btn}>Decisiones (CSV)</button>
+        <button onClick={() => csv(v4DictionaryTable())} className={btn}>Diccionario (CSV)</button>
       </div>
+    </Section>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Integridad de los datos: señales de actividad automatizada (calculadas en el servidor)
+// ---------------------------------------------------------------------------
+const SIGNAL_LABEL: Record<string, string> = {
+  rafaga: 'empezó durante una ráfaga de sesiones (informativa)',
+  partida_rapida: 'partida completa demasiado rápida',
+  decisiones_rapidas: 'varias decisiones seguidas demasiado rápidas',
+  ritmo_constante: 'ritmo casi constante entre decisiones',
+}
+
+function Integrity({ sessions, reload }: { sessions: ShareSessionRow[]; reload: () => Promise<void> }) {
+  const { profile } = useData()
+  const [msg, setMsg] = useState<string | null>(null)
+  const canReview = profile.role !== 'viewer'
+  const flagged = sessions.filter((s) => s.automation_flagged)
+  const reviewed = sessions.filter((s) => s.automation_review === 'humana')
+  const burst = sessions.filter((s) => (s.automation_signals ?? []).includes('rafaga')).length
+  const list = [...flagged, ...reviewed]
+  const review = async (id: string, human: boolean) => {
+    setMsg(null)
+    const note = human ? prompt('Nota de la revisión (queda en la auditoría):', 'Revisada: es una persona') : null
+    if (human && note === null) return
+    const { error } = await supabase().rpc('review_automation', { p_session_id: id, p_human: human, p_note: note })
+    setMsg(error ? 'No se pudo guardar la revisión.' : 'Revisión guardada.')
+    await reload()
+  }
+  const recompute = async () => {
+    setMsg(null)
+    const { data, error } = await supabase().rpc('recompute_automation_signals', { p_session_id: null })
+    const r = data as { sessions: number; with_signals: number } | null
+    setMsg(error || !r ? 'No se pudieron recalcular las señales.' : `Señales recalculadas en ${r.sessions} partidas terminadas: ${r.with_signals} con señales.`)
+    await reload()
+  }
+  return (
+    <Section title={`Actividad automatizada: ${flagged.length} ${flagged.length === 1 ? 'partida marcada' : 'partidas marcadas'}`}
+      description="Señales calculadas en el servidor solo con sus horas (sin IP ni datos del dispositivo). No frenan el juego ni cambian puntos: sacan la partida del ranking, de las estadísticas públicas y de la muestra válida. Las filas se conservan; revisa cada caso.">
+      {msg && <p role="status" className="mb-2 rounded-lg bg-lav p-2 text-sm">{msg}</p>}
+      <p className="text-sm">
+        <b className="tabular">{flagged.length}</b> con señales sin revisar · <b className="tabular">{reviewed.length}</b> revisadas como humanas · <b className="tabular">{burst}</b> empezaron durante una ráfaga (informativo, no excluye).
+      </p>
+      {list.length > 0 && (
+        <ul className="mt-2 divide-y divide-black/5 text-sm">
+          {list.map((s) => (
+            <li key={s.session_id} className="flex flex-wrap items-center gap-2 py-1.5">
+              <span className="font-mono text-xs">{s.session_id.slice(0, 8)}</span>
+              <span className="text-muted">{new Date(s.started_at).toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+              <span className="flex-1">{(s.automation_signals ?? []).map((x) => SIGNAL_LABEL[x] ?? x).join(' · ')}{s.automation_review === 'humana' ? ' — revisada: humana' : ''}</span>
+              {canReview && (s.automation_review === 'humana'
+                ? <button onClick={() => void review(s.session_id, false)} className="rounded border border-soft px-2 py-0.5">Quitar revisión</button>
+                : <button onClick={() => void review(s.session_id, true)} className="rounded border border-soft px-2 py-0.5">Revisada: es humana</button>)}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canReview && <button onClick={() => void recompute()} className="mt-3 rounded-lg border border-soft bg-white px-3 py-1.5 text-sm hover:bg-lav">Recalcular señales de las partidas terminadas</button>}
     </Section>
   )
 }

@@ -17,7 +17,8 @@ const ZERO = '00000000-0000-4000-8000-000000000000';
 
 const tables = ['participant_sessions','game_decisions','game_sessions_summary','survey_responses','share_decisions','source_opens',
   'leaderboard_entries','hint_events','response_codes','audit_events','admin_profiles','studies','news_items','news_bank','survey_questions',
-  'radiografia_respuestas','radiografia_respuestas_backup_20261009','v_sessions','v_decisions','v_open_responses','v_share_decisions','v_share_sessions'];
+  'radiografia_respuestas','radiografia_respuestas_backup_20261009','v_sessions','v_decisions','v_open_responses','v_share_decisions','v_share_sessions',
+  'platform_settings','session_integrity'];
 
 for (const t of tables) {
   const r = await req('GET', `/rest/v1/${t}?select=*&limit=1`);
@@ -45,6 +46,9 @@ const adminCalls = [
   ['set_session_flags', { p_session_id: ZERO, p_is_test: true, p_exclusion_reason: null }], ['find_sessions_by_code', { p_code: 'ABC' }],
   ['log_export', { p_details: {} }], ['activate_study_version', { p_study_id: ZERO }], ['save_news_card', { p_card: {} }],
   ['set_survey_code', { p_session_id: ZERO, p_code: '1234567C', p_survey_intent: 'despues' }], ['_compute_summary', { p_session_id: ZERO }],
+  ['export_dataset', { p_dataset: 'v4_sesiones', p_filters: {} }], ['review_automation', { p_session_id: ZERO, p_human: true, p_note: null }],
+  ['recompute_automation_signals', { p_session_id: null }], ['get_platform_settings', {}], ['set_platform_setting', { p_key: 'burst_sessions_per_minute', p_value: 10 }],
+  ['_automation_signals', { p_session_id: ZERO }], ['_setting', { p_key: 'sessions_per_minute_ceiling' }],
 ];
 for (const [fn, args] of adminCalls) {
   const r = await req('POST', `/rest/v1/rpc/${fn}`, args);

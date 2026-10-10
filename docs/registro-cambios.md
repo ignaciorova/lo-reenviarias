@@ -2,6 +2,17 @@
 
 Los cambios se separan en **técnicos** (no alteran lo que se mide) y **metodológicos** (pueden alterar las respuestas o su interpretación). Los datos de versiones distintas del instrumento no deben combinarse sin justificarlo en el análisis.
 
+## Integridad del estudio (migración 20261011000400, rama `claude/integridad-estudio`; no aplicada)
+
+Cambios **técnicos**: no alteran el instrumento, sus preguntas, noticias ni puntuación. Sí cambian qué sesiones cuentan como válidas para el análisis. Detalle en [integridad-estudio.md](integridad-estudio.md).
+
+| # | Cambio |
+|---|---|
+| I1 | Señales de actividad automatizada calculadas en el servidor con horas del servidor (`session_integrity`). Las partidas con señales no entran al ranking, a `public_stats` ni al percentil, y quedan fuera de `is_valid`; las filas se conservan y el equipo puede revisarlas. |
+| I2 | El límite de 120 sesiones/minuto deja de rechazar: queda un techo técnico de 600/min (`platform_settings`) y una señal informativa de ráfaga. |
+| I3 | Exportaciones solo para analyst y owner, servidas por `export_dataset`, que audita en el servidor. `log_export` ya no se puede invocar. |
+| I4 | El texto libre de las preguntas abiertas solo lo leen analyst y owner. |
+
 ## Instrumento 4.0.0 (borrador, en la rama `claude/version-4`; no activo)
 
 No es comparable con 1.0.0–3.1.0: cambia la variable principal. Detalle en [version-4.md](version-4.md).

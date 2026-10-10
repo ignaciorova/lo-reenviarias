@@ -16,6 +16,8 @@ export type ShareSessionRow = {
   e1: number; e2: number; e3: number; e4: number; e5: number; e6: number; e7: number; e8: number
   verified_effective: number; evaluation_correct: number; belief_no_se: number; belief_correct: number; belief_decided: number
   real_si: number; real_answered: number; fake_si: number; fake_answered: number; score: number | null; is_valid: boolean
+  /** Integridad (migración 20261011000400): señales del servidor; flagged = fuera del ranking y del análisis. */
+  automation_signals?: string[]; automation_review?: string | null; automation_flagged?: boolean
 }
 
 export type ShareDecisionRow = {
@@ -63,13 +65,14 @@ export function sessionIndicators(s: ShareSessionRow): SessionIndicators {
 
 export type SampleRule = { firstOnly: boolean; includeTest: boolean }
 
-/** Muestra de análisis: sesiones válidas (completas, sin exclusión, no de prueba) y, por defecto, solo primeras partidas. */
+/** Muestra de análisis: sesiones válidas (completas, sin exclusión, sin señales de actividad automatizada, no de prueba) y, por defecto, solo primeras partidas. */
 export function analysisSample(rows: ShareSessionRow[], rule: SampleRule) {
-  const flow = { total: rows.length, test: 0, incomplete: 0, excluded: 0, replay: 0, allTimeout: 0, included: 0 }
+  const flow = { total: rows.length, test: 0, incomplete: 0, excluded: 0, automated: 0, replay: 0, allTimeout: 0, included: 0 }
   const included: ShareSessionRow[] = []
   for (const s of rows) {
     if (s.is_test && !rule.includeTest) { flow.test++; continue }
     if (s.exclusion_reason) { flow.excluded++; continue }
+    if (s.automation_flagged) { flow.automated++; continue }
     if (s.status !== 'completed' || s.cards_done !== s.items_total) { flow.incomplete++; continue }
     if (rule.firstOnly && !isFirstPlay(s)) { flow.replay++; continue }
     if (s.r_answered === 0) { flow.allTimeout++; continue }
@@ -208,14 +211,15 @@ const r4 = (x: number) => (Number.isFinite(x) ? Math.round(x * 10000) / 10000 : 
 export function v4SessionsTable(rows: ShareSessionRow[]): Table {
   const cols = ['session_id', 'version', 'estado', 'valida', 'prueba', 'exclusion', 'primera_vez', 'otra_partida_en_dispositivo', 'origen', 'dispositivo', 'inicio_utc', 'fin_utc', 'duracion_s',
     'R', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'difusion_sin_verificar', 'limite_inferior_E7', 'limite_superior_E7', 'no_difusion_sin_verificar', 'verificacion_iniciada', 'verificacion_efectiva', 'difusion_total',
-    'uso_aviso', 'evaluacion_correcta', 'no_se', 'precision_creencia', 'discernimiento', 'puntos']
+    'uso_aviso', 'evaluacion_correcta', 'no_se', 'precision_creencia', 'discernimiento', 'puntos', 'senales_automatizacion', 'excluida_por_senales', 'revision_senales']
   return {
     name: 'participantes_v4', columns: cols,
     rows: rows.map((s) => {
       const i = sessionIndicators(s)
       return [s.session_id, s.instrument_version, s.status, s.is_valid, s.is_test, s.exclusion_reason, s.primera_vez, s.device_replay, s.entry_origin, s.device_class, s.started_at, s.completed_at, s.duration_seconds,
         s.r_answered, s.e1, s.e2, s.e3, s.e4, s.e5, s.e6, s.e7, s.e8, r4(i.dsv), r4(i.dsvLo), r4(i.dsvHi), r4(i.noShare), r4(i.verInit), r4(i.verEff), r4(i.shareTotal),
-        r4(i.warning), r4(i.evalCorrect), r4(i.noSe), r4(i.accuracy), r4(i.discernment), s.score]
+        r4(i.warning), r4(i.evalCorrect), r4(i.noSe), r4(i.accuracy), r4(i.discernment), s.score,
+        (s.automation_signals ?? []).join('|'), s.automation_flagged ?? false, s.automation_review ?? null]
     }),
   }
 }
@@ -247,6 +251,9 @@ export function v4DictionaryTable(): Table {
     ['origen', 'Canal por el que llegó (?origen=: qr_juego, enlace, encuesta, otro). No vincula con respuestas de la encuesta.'],
     ['primera_vez', 'Respuesta a «¿Es la primera vez que juegas este juego?». El análisis principal usa solo primeras partidas.'],
     ['otra_partida_en_dispositivo', 'El navegador ya había terminado otra partida de la 4.0.0.'],
+    ['senales_automatizacion', 'Señales de actividad automatizada calculadas en el servidor con sus horas: rafaga (informativa), partida_rapida, decisiones_rapidas, ritmo_constante.'],
+    ['excluida_por_senales', 'Tiene una señal distinta de «rafaga» sin revisión «humana»: fuera de «valida», del ranking y de las estadísticas públicas. La fila se conserva.'],
+    ['revision_senales', '«humana» si el equipo revisó la sesión y anuló la exclusión (auditado).'],
   ]
   return { name: 'diccionario_v4', columns: ['variable', 'definicion'], rows: d }
 }

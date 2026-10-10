@@ -71,7 +71,8 @@ export function useResearchDataState(profile: AdminProfile): Ctx {
       const [s, d, o, items, studies] = await Promise.all([
         fetchAll<SessionRow>('v_sessions', 'started_at'),
         fetchAll<DecisionRow>('v_decisions', 'decision_id'),
-        fetchAll<OpenResponseRow>('v_open_responses', 'response_id'),
+        // Texto libre: solo analyst y owner (puede contener datos personales). Para viewer, el servidor no devuelve filas.
+        profile.role === 'viewer' ? Promise.resolve({ rows: [] as OpenResponseRow[], expected: 0 }) : fetchAll<OpenResponseRow>('v_open_responses', 'response_id'),
         sb.from('news_items').select('id,item_key,headline,is_real,category,source_name,source_url,source_published_on,explanation,hint,validation_status,validation_notes,study_id').order('item_key'),
         sb.from('studies').select('id,code,version,title,status,config,changelog,description').order('version'),
       ])
@@ -89,7 +90,7 @@ export function useResearchDataState(profile: AdminProfile): Ctx {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [profile.role])
 
   useEffect(() => { void reload() }, [reload])
   return { data, loading, error, reload, filters, setFilters, profile }

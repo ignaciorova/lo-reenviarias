@@ -180,7 +180,9 @@ select tst.ok(tst.err($$select public.grant_admin('random@test.local','viewer')$
 select tst.ok(tst.err($$select * from public.list_admins()$$) like '%forbidden%', 'viewer no lista admins');
 select tst.ok((select count(*) from public.audit_events) = 0, 'viewer no ve auditoría');
 select tst.ok(tst.err($$update public.game_decisions set is_correct = true$$) like '%permission denied%', 'viewer no altera decisiones');
-select public.log_export('{"dataset":"decisiones","rows":10}');
+-- Desde 20261011000400 el navegador ya no declara exportaciones (log_export) y viewer no exporta
+select tst.ok(tst.err($$select public.log_export('{"dataset":"decisiones","rows":10}')$$) like '%permission denied%', 'log_export ya no se puede invocar');
+select tst.ok(tst.err($$select public.export_dataset('decisiones', '{}')$$) like '%forbidden%', 'viewer no exporta');
 
 -- ---------------------------------------------------------------------------
 -- 5. Owner: gestiona administradores; todo queda auditado
@@ -191,6 +193,8 @@ select tst.ok((select count(*) from public.list_admins()) = 3, 'owner lista 3 ad
 select tst.ok(tst.err($$select public.revoke_admin('00000000-0000-4000-8000-000000000001')$$) like '%cannot_revoke_self%', 'owner no se revoca a sí mismo');
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000004', false);
 select public.set_session_flags('22222222-2222-4222-8222-222222222222', true, null);
+-- La exportación la registra el servidor (export_dataset), con el conteo real de filas
+select tst.ok((public.export_dataset('decisiones', '{"descripcion":"prueba"}') ->> 'row_count')::int = (select count(*) from public.v_decisions), 'analyst exporta decisiones');
 select tst.ok((select is_test from public.participant_sessions where id = '22222222-2222-4222-8222-222222222222'), 'analyst marca sesión de prueba');
 select tst.ok((select count(*) from public.audit_events where action in ('grant_admin','set_session_flags','export')) = 3, 'acciones administrativas auditadas');
 reset role;

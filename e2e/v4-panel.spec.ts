@@ -18,8 +18,12 @@ async function rpc(req: APIRequestContext, fn: string, body: Record<string, unkn
 
 type Plan = { action: 'reenviar' | 'reenviar_aviso' | 'no_reenviar' | 'verificar' | 'timeout'; final?: 'reenviar' | 'reenviar_aviso' | 'no_reenviar'; effective?: boolean; belief: 'si' | 'no' | 'no_se' }
 
-/** Juega una partida completa por la API. Devuelve el id de sesión. */
-async function play(req: APIRequestContext, plan: Plan[], opts: { first?: boolean } = {}) {
+/**
+ * Juega una partida completa por la API. Devuelve el id de sesión.
+ * La API responde en milisegundos; desde 20261011000400 eso es una señal de actividad automatizada. Salvo con
+ * { script: true }, antes de cerrar se simula en la base el ritmo de una persona (horas del servidor).
+ */
+async function play(req: APIRequestContext, plan: Plan[], opts: { first?: boolean; script?: boolean } = {}) {
   const sid = crypto.randomUUID()
   const p = await rpc(req, 'start_session_v4', { p_session_id: sid, p_consent: true, p_device_class: 'mobile', p_reduced_motion: false, p_entry_origin: 'qr_juego',
     p_survey_intent: null, p_survey_code: null, p_study_code: 'lo-reenviarias', p_device_replay: false })
@@ -40,9 +44,17 @@ async function play(req: APIRequestContext, plan: Plan[], opts: { first?: boolea
     }
     await rpc(req, 'submit_card', { p_session_id: sid, p_position: it.position, p_card: card })
   }
+  if (!opts.script) {
+    sqlExec(`update public.participant_sessions set game_started_at = now() - interval '5 minutes' where id = '${sid}'`)
+    sqlExec(`update public.share_decisions set created_at = now() - interval '5 minutes' + (position * 20 + (position % 4) * 3) * interval '1 second' where session_id = '${sid}'`)
+  }
   await rpc(req, 'complete_session_v4', { p_session_id: sid })
   return sid
 }
+
+/** Sesiones con señales que las sacan del análisis (sin revisión «humana»), según la tabla del servidor. */
+const NOT_FLAGGED = `not exists (select 1 from public.session_integrity i where i.session_id = ps.id
+  and i.automation_signals && array['partida_rapida','decisiones_rapidas','ritmo_constante'] and i.review is distinct from 'humana')`
 
 const P = (s: string): Plan[] => s.split(' ').map((t) => {
   const b = 'si' as const
@@ -82,6 +94,8 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
   await play(request, P('R R R R R R R A A T'))
   await play(request, P('T T T T T T T T T T'))                          // todo agotado: fuera, se cuenta aparte
   await play(request, P('R R R R R R R R R R'), { first: false })         // repetición: fuera del análisis principal
+  const bot = await play(request, P('R R R R R R R R R R'), { script: true }) // a velocidad de máquina: señales, fuera del análisis
+  expect(sql<{ s: string[] }>(`select automation_signals as s from public.session_integrity where session_id = '${bot}'`)[0].s).toEqual(expect.arrayContaining(['decisiones_rapidas']))
 
   // SQL independiente, desde las tablas (no desde las vistas del panel)
   const [x] = sql<{ n: number; main: number; lo: number; hi: number; ver: number; eff: number; nose: number; aviso: number }>(`
@@ -96,7 +110,7 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
         count(*) filter (where d.state in ('E2','E5'))::numeric as aviso,
         count(*) filter (where d.state in ('E1','E2','E4','E5'))::numeric as shared
       from public.participant_sessions ps join public.share_decisions d on d.session_id = ps.id
-      where ps.status = 'completed' and not ps.is_test and ps.exclusion_reason is null and not coalesce(ps.device_replay, false)
+      where ps.status = 'completed' and not ps.is_test and ps.exclusion_reason is null and not coalesce(ps.device_replay, false) and ${NOT_FLAGGED}
         and exists (select 1 from public.survey_responses sr join public.survey_questions q on q.id = sr.question_id
                      where sr.session_id = ps.id and q.question_key = 'primera_vez' and sr.option_value like 'Sí%')
       group by ps.id having count(*) filter (where d.state between 'E1' and 'E6') > 0)
@@ -119,9 +133,17 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
   await expect(kpi('Compartió con aviso')).toContainText(pct(x.aviso))
   await expect(page.getByText('sin ninguna respuesta (todo E7)')).toBeVisible()
 
+  // Integridad: la partida guiada por un script se cuenta aparte y se puede revisar
+  const flagged = sql<{ n: number }>(`select count(*)::int as n from public.participant_sessions ps join public.studies st on st.id = ps.study_id
+    where st.config ->> 'mode' = 'responsabilidad' and not ${NOT_FLAGGED}`)[0].n
+  expect(flagged).toBeGreaterThanOrEqual(1)
+  await expect(page.getByRole('heading', { name: `Actividad automatizada: ${flagged} ${flagged === 1 ? 'partida marcada' : 'partidas marcadas'}` })).toBeVisible()
+  await expect(page.getByText('con señales de actividad automatizada')).toBeVisible()
+  await expect(page.locator('li').filter({ hasText: bot.slice(0, 8) })).toContainText('varias decisiones seguidas demasiado rápidas')
+
   // Sin el filtro de primeras partidas entra la repetición
   await page.getByLabel('Solo primeras partidas (análisis principal)').uncheck()
-  const nAll = sql<{ n: number }>(`select count(*)::int as n from public.participant_sessions ps where ps.status = 'completed' and not ps.is_test and ps.exclusion_reason is null
+  const nAll = sql<{ n: number }>(`select count(*)::int as n from public.participant_sessions ps where ps.status = 'completed' and not ps.is_test and ps.exclusion_reason is null and ${NOT_FLAGGED}
     and (select count(*) from public.share_decisions d where d.session_id = ps.id and d.state between 'E1' and 'E6') > 0
     and ps.study_id in (select id from public.studies where config ->> 'mode' = 'responsabilidad')`)[0].n
   expect(nAll).toBeGreaterThan(x.n)
@@ -144,7 +166,32 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
   expect(lines.length - 1).toBe(total)
   expect(lines[0]).toContain('"difusion_sin_verificar"')
   expect(lines[0]).not.toContain('codigo_encuesta')
+  expect(lines[0]).toContain('"senales_automatizacion"')
   await expect.poll(() => sql<{ n: number }>(`select count(*)::int as n from public.audit_events where action = 'export'`)[0].n).toBe(before + 1)
+  // La auditoría la escribe el servidor, con el número de filas que realmente entregó y la persona
+  const audit = sql<{ rows: number; via: string; actor: string; dataset: string }>(`select (details ->> 'rows')::int as rows, details ->> 'via' as via, actor_id::text as actor, target_id as dataset
+    from public.audit_events where action = 'export' order by id desc limit 1`)[0]
+  expect(audit).toEqual({ rows: total, via: 'export_dataset', actor: OWNER[0], dataset: 'v4_sesiones' })
+})
+
+test('viewer: ve el panel 4.x pero no exporta ni lee texto libre', async ({ page }, info) => {
+  test.skip(info.project.name !== 'escritorio', 'una sola vez')
+  const before = sql<{ n: number }>(`select count(*)::int as n from public.audit_events where action = 'export'`)[0].n
+  await loginAs(page, tok('viewer'), ...VIEWER)
+  await go(page, 'Responsabilidad (4.x)')
+  await expect(page.getByText('Indicador principal')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^Actividad automatizada/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Revisada: es humana' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Participantes (CSV)' })).toBeDisabled()
+  await expect(page.getByText(/no descargar datos/).first()).toBeVisible()
+  await go(page, 'Exportar')
+  await expect(page.getByRole('button', { name: 'Dataset por participante' })).toBeDisabled()
+  await go(page, 'Preguntas abiertas')
+  await expect(page.getByText(/solo las ven los roles analyst y owner/)).toBeVisible()
+  // Por la API tampoco: el servidor rechaza la exportación
+  const r = await page.request.post('/rest/v1/rpc/export_dataset', { data: { p_dataset: 'v4_sesiones', p_filters: {} }, headers: { apikey: tok('anon'), Authorization: `Bearer ${tok('viewer')}` } })
+  expect(r.status()).toBeGreaterThanOrEqual(400)
+  expect(sql<{ n: number }>(`select count(*)::int as n from public.audit_events where action = 'export'`)[0].n).toBe(before)
 })
 
 test('fuentes de una noticia: owner edita, viewer solo ve', async ({ page }, info) => {
