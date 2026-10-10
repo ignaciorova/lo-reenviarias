@@ -54,6 +54,6 @@ No se borra ningún dato. Las sesiones de la 3.0.0 quedan guardadas con su versi
 
 ## Pendiente antes de activar
 
-- **Foto del plenario (noticia falsa del ejército):** confirmar la fuente y la licencia, o reemplazarla por una imagen de IA.
-- **Etiquetas de origen:** la etiqueta del plenario («Foto de referencia · fuente por confirmar») es distinta de la de las demás, y SINPE no tiene etiqueta. Las dos son noticias falsas, así que esas diferencias podrían delatar la respuesta. Conviene igualarlas antes de activar.
+- **Plenario (noticia falsa del ejército):** la foto de referencia era de CR Hoy, así que no se publica: tiene derechos de autor y asociaría a un medio real con una noticia inventada. Hay que reemplazar `public/media/v3/plenario.jpg` por una imagen generada con IA, como las demás.
+- **Etiquetas (resuelto 2026-10-10):** las 10 noticias muestran la misma etiqueta, «Imagen ilustrativa · juego académico», para que el origen de la imagen no delate si la noticia es real o falsa.
 - **Comité de ética:** decisión del equipo sobre si el cambio de instrumento requiere aviso.

@@ -5,7 +5,7 @@
 
 insert into public.studies (code, version, title, description, status, config, changelog)
 select code, '3.0.0', '¿Lo reenviarías? — noticias ilustradas',
-       'Mismas 10 noticias, preguntas y reglas que la 2.0.0, con una imagen o clip por noticia. Imágenes generadas con IA (Canva) y etiquetadas como tales; logos de marcas e instituciones difuminados.',
+       'Mismas 10 noticias, preguntas y reglas que la 2.0.0, con una imagen o clip por noticia. Imágenes generadas con IA (Canva) o dibujadas para el juego, todas con la misma etiqueta «Imagen ilustrativa · juego académico»; logos de marcas e instituciones difuminados.',
        'draft', config,
        'Metodológico: se añade un medio visual por noticia (8 imágenes y 2 clips; 5 reales y 5 falsas, un clip en cada grupo). Las observaciones no deben agregarse con las de 2.0.0 sin justificación, porque las imágenes pueden cambiar la credibilidad percibida.'
 from public.studies where code = 'lo-reenviarias' and version = '2.0.0'
@@ -24,13 +24,14 @@ with media(m) as (select '{
     "src": "/media/v3/bus.jpg",
     "alt": "Foto: personas caminando hacia un bus blanco y verde junto a un cartón escrito a mano que dice que el pasaje pasa de ₡260 a ₡1.000",
     "frame": "whatsapp",
-    "credit": "Imagen generada con IA · juego académico",
+    "credit": "Imagen ilustrativa · juego académico",
     "focus": "20% 50%"
   },
   "f_sinpe": {
     "kind": "image",
     "src": "/media/v3/sinpe.svg",
     "alt": "Imagen con aspecto de comunicado oficial que anuncia un cobro de ₡150 por transferencia y pide compartirla",
+    "credit": "Imagen ilustrativa · juego académico",
     "frame": "whatsapp"
   },
   "r_cuba": {
@@ -40,35 +41,35 @@ with media(m) as (select '{
     "poster": "/media/v3/cuba-poster.jpg",
     "alt": "Clip corto sin sonido: una embajada con el portón cerrado con candado, un aviso pegado en la reja y el asta sin bandera",
     "frame": "tiktok",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "f_ejercito": {
     "kind": "image",
     "src": "/media/v3/plenario.jpg",
     "alt": "Foto del plenario vacío de la Asamblea Legislativa de Costa Rica",
     "frame": "facebook",
-    "credit": "Foto de referencia · fuente por confirmar"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "r_arancel": {
     "kind": "image",
     "src": "/media/v3/puerto.jpg",
     "alt": "Foto: patio de contenedores de un puerto caribeño bajo la lluvia, con grúas azules y un barco cargado",
     "frame": "facebook",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "f_marihuana": {
     "kind": "image",
     "src": "/media/v3/farmacia.jpg",
     "alt": "Foto: mostrador de una farmacia con estantes llenos de frascos y cajas de medicamentos",
     "frame": "whatsapp",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "r_hermano": {
     "kind": "image",
     "src": "/media/v3/oficina.jpg",
     "alt": "Foto: escritorio de una oficina pública con expedientes, un sello y la bandera de Costa Rica al fondo",
     "frame": "whatsapp",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "f_ccss": {
     "kind": "video",
@@ -77,21 +78,21 @@ with media(m) as (select '{
     "poster": "/media/v3/emergencias-poster.jpg",
     "alt": "Clip corto sin sonido: entrada de una sala de emergencias de noche, con una ambulancia estacionada bajo la lluvia",
     "frame": "tiktok",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "r_recorte": {
     "kind": "image",
     "src": "/media/v3/comedor.jpg",
     "alt": "Foto: comedor escolar con una cocinera sirviendo arroz, frijoles y verduras en bandejas",
     "frame": "facebook",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   },
   "f_ingles": {
     "kind": "image",
     "src": "/media/v3/aula.jpg",
     "alt": "Foto: aula de escuela vacía con pupitres de madera y una pizarra con una lección de inglés",
     "frame": "facebook",
-    "credit": "Imagen generada con IA · juego académico"
+    "credit": "Imagen ilustrativa · juego académico"
   }
 }'::jsonb)
 insert into public.news_items (study_id, item_key, item_version, headline, body_text, is_real, category, source_name, source_url,
