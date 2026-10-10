@@ -1,0 +1,527 @@
+[
+ {
+  "key": "r_arancel",
+  "real": true,
+  "category": "Economía y comercio",
+  "headline": "EE.UU. impone un arancel de 12,5% a Costa Rica por presunto trabajo forzoso en la cadena de suministro",
+  "hint": "La reportaron agencias internacionales y medios nacionales en julio de 2026.",
+  "explanation": "Es real. Ocurrió el 24 de julio de 2026.",
+  "flags": [],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": [
+    {
+     "outlet": "La República (CR)",
+     "url": "https://www.larepublica.net/noticia/ee-uu-cobrara-125-de-aranceles-a-exportaciones-ticas",
+     "published": "2026-07-23",
+     "supports": "confirma"
+    }
+   ]
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "f_marihuana",
+  "real": false,
+  "category": "Política nacional",
+  "headline": "Desde noviembre será legal comprar marihuana recreativa en farmacias de Costa Rica",
+  "hint": "Ningún medio la reporta y un cambio de ley así pasaría por la Asamblea con mucha cobertura.",
+  "explanation": "Es inventada para este juego.",
+  "flags": [
+   "No dice quién lo anunció ni cita ninguna ley.",
+   "Un cambio de ley así sería noticia en todos los medios.",
+   "Toca un tema polémico para que reacciones rápido."
+  ],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": []
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "r_cuba",
+  "real": true,
+  "category": "Política internacional",
+  "headline": "Costa Rica rompe relaciones diplomáticas con Cuba y ordena cerrar su embajada",
+  "hint": "Se publicó en medios nacionales e internacionales en marzo de 2026.",
+  "explanation": "Es real. Sucedió el 18 de marzo de 2026.",
+  "flags": [],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": [
+    {
+     "outlet": "ADN40 / Reuters (18/03/2026)",
+     "url": "https://www.adn40.mx/internacional/2026-03-18/costa-rica-cierra-su-embajada-en-cuba-la-habana-apunta-a-presiones-trump",
+     "published": "2026-03-18",
+     "supports": "confirma"
+    }
+   ]
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "f_ingles",
+  "real": false,
+  "category": "Educación",
+  "headline": "Por el recorte de presupuesto, el MEP eliminará las clases de inglés en primaria a partir de 2027",
+  "hint": "El recorte sí es real, pero no hay ningún anuncio sobre eliminar el inglés.",
+  "explanation": "Es inventada para este juego, pero se monta sobre una noticia real: el recorte al presupuesto de educación.",
+  "flags": [
+   "Mezcla un hecho real con uno falso: es la técnica más efectiva.",
+   "No cita comunicado del MEP.",
+   "Busca indignación."
+  ],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": []
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "r_hermano",
+  "real": true,
+  "category": "Función pública",
+  "headline": "Hermano de un ministro obtuvo una mejora salarial de ₡2 millones gracias a un puesto en el Gobierno",
+  "hint": "Lo publicó CR Hoy a inicios de octubre de 2026.",
+  "explanation": "Es real. CR Hoy lo publicó en octubre de 2026.",
+  "flags": [],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": [
+    {
+     "outlet": "CR Hoy (03/10/2026)",
+     "url": "https://crhoy.com/nacionales/hermano-de-ministro-tuvo-mejora-salarial-de-₡2-millones-gracias-a-puesto-en-el-gobierno/",
+     "published": "2026-10-03",
+     "supports": "confirma"
+    }
+   ]
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "f_ejercito",
+  "real": false,
+  "category": "Política nacional",
+  "headline": "URGENTE: la Asamblea Legislativa aprobó en primer debate volver a crear el ejército",
+  "hint": "Abolir el ejército está en la Constitución; cambiarlo sería un hecho histórico con cobertura mundial.",
+  "explanation": "Es inventada para este juego.",
+  "flags": [
+   "Mayúsculas y \"URGENTE\" para generar alarma.",
+   "Sería una reforma constitucional: imposible que pase en silencio.",
+   "No hay votación registrada ni medio que lo publique."
+  ],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": []
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "r_bus",
+  "real": true,
+  "category": "Transporte y costo de vida",
+  "headline": "El pasaje de una ruta de bus en Alajuela pasó de ₡260 a ₡1.000",
+  "hint": "Lo publicó La Teja el 2 de octubre de 2026.",
+  "explanation": "Es real. La Teja lo publicó el 2 de octubre de 2026.",
+  "flags": [],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": [
+    {
+     "outlet": "La Teja (07/10/2026)",
+     "url": "https://www.lateja.cr/finanzas-y-tecnologia/bus-de-ruta-de-alajuela-amanecio-este-miercoles/PYIMWBYERVCPJMHNVS4ZA3DRWA/story/",
+     "published": "2026-10-07",
+     "supports": "confirma"
+    }
+   ]
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "f_ccss",
+  "real": false,
+  "category": "Salud",
+  "headline": "La CCSS dejará de atender emergencias a personas que no tengan el seguro al día desde enero. ¡Pásalo!",
+  "hint": "No hay comunicado de la CCSS y la atención de emergencias está garantizada por ley.",
+  "explanation": "Es inventada para este juego.",
+  "flags": [
+   "Pide \"pásalo\": las instituciones no comunican así.",
+   "Genera miedo sobre un tema de salud.",
+   "No hay comunicado oficial."
+  ],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": []
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "r_recorte",
+  "real": true,
+  "category": "Educación",
+  "headline": "Gremios rechazan recorte de ₡19 mil millones a educación: alertan que afectaría becas y comedores escolares",
+  "hint": "Lo publicó Diario Extra el 4 de septiembre de 2026.",
+  "explanation": "Es real. Diario Extra lo publicó el 4 de septiembre de 2026.",
+  "flags": [],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": [
+    {
+     "outlet": "Diario Extra",
+     "url": "https://www.diarioextra.com/videos/ecorte-presupuesto-educativo-costa-rica/",
+     "published": "2026-09-04",
+     "supports": "confirma"
+    }
+   ]
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "confirma",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "key": "f_sinpe",
+  "real": false,
+  "category": "Finanzas personales",
+  "headline": "A partir del 1 de noviembre SINPE Móvil cobrará ₡150 por cada transferencia. ¡Avísale a todos!",
+  "hint": "El Banco Central no ha anunciado ningún cobro así.",
+  "explanation": "Es inventada para este juego.",
+  "flags": [
+   "Pide reenviarlo a todos.",
+   "Fecha cercana para que reacciones sin pensar.",
+   "Ningún enlace ni comunicado oficial."
+  ],
+  "dossier": {
+   "status": "pendiente",
+   "notes": "PROVISIONAL (desarrollo): reemplazar por el expediente verificado.",
+   "sources": []
+  },
+  "consult": [
+   {
+    "kind": "oficial",
+    "label": "Comunicado oficial",
+    "excerpt": "Texto provisional de la fuente oficial para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "medio",
+    "label": "Medio nacional",
+    "excerpt": "Texto provisional del medio para pruebas del flujo.",
+    "says": "desmiente",
+    "simulated": false
+   },
+   {
+    "kind": "comentarios",
+    "label": "Comentarios en redes",
+    "excerpt": "Opiniones de personas en redes sociales (simuladas).",
+    "says": "nada_claro",
+    "simulated": true,
+    "comments": [
+     {
+      "who": "Usuario 1",
+      "text": "Yo lo vi en otro grupo"
+     },
+     {
+      "who": "Usuario 2",
+      "text": "¿Alguien tiene la fuente?"
+     }
+    ]
+   }
+  ]
+ }
+]

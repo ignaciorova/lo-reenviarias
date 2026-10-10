@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Recrea la base local y ejecuta las pruebas SQL (seguridad y flujo; banco de noticias).
+# Recrea la base local y ejecuta las pruebas SQL (seguridad y flujo, banco de noticias, ranking y versión 4.0.0).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DB=${DB:-lr_test} bash scripts/db-local-reset.sh >/dev/null

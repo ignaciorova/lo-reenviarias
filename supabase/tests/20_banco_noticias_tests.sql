@@ -63,13 +63,13 @@ select tst.ok(tst.err($$select public.save_news_card(pg_temp.card('{"item_key": 
 select tst.ok(tst.err($$select public.save_news_card(pg_temp.card('{"is_real": "sí"}'))$$) like '%falta_real_o_falsa%', 'real/falsa obligatorio');
 
 -- Armar versiones
-select tst.ok(tst.err($$select public.create_study_version('4.0.0','x','Nota de prueba suficiente', (select array_agg(id) from (select id from public.news_bank limit 9) x))$$) like '%pocas_noticias%', 'exige al menos 10 noticias');
-select tst.ok(tst.err($$select public.create_study_version('4.0.0','x','Nota de prueba suficiente', (select array_agg(id) from public.news_bank where not is_real))$$) like '%pocas_noticias%' , 'solo falsas: también pocas');
+select tst.ok(tst.err($$select public.create_study_version('4.9.0','x','Nota de prueba suficiente', (select array_agg(id) from (select id from public.news_bank limit 9) x))$$) like '%pocas_noticias%', 'exige al menos 10 noticias');
+select tst.ok(tst.err($$select public.create_study_version('4.9.0','x','Nota de prueba suficiente', (select array_agg(id) from public.news_bank where not is_real))$$) like '%pocas_noticias%' , 'solo falsas: también pocas');
 select tst.ok(tst.err($$select public.create_study_version('3.0.0','x','Nota de prueba suficiente', (select array_agg(id) from public.news_bank))$$) like '%version_existente%', 'no reutiliza un número de versión');
-select tst.ok(tst.err($$select public.create_study_version('4.0','x','Nota de prueba suficiente', (select array_agg(id) from public.news_bank))$$) like '%version_invalida%', 'formato de versión');
-select tst.ok(tst.err($$select public.create_study_version('4.0.0','x','corta', (select array_agg(id) from public.news_bank))$$) like '%falta_nota_de_cambios%', 'exige nota de cambios');
+select tst.ok(tst.err($$select public.create_study_version('4.9','x','Nota de prueba suficiente', (select array_agg(id) from public.news_bank))$$) like '%version_invalida%', 'formato de versión');
+select tst.ok(tst.err($$select public.create_study_version('4.9.0','x','corta', (select array_agg(id) from public.news_bank))$$) like '%falta_nota_de_cambios%', 'exige nota de cambios');
 
-insert into ctx values ('v4', (public.create_study_version('4.0.0', 'Con peaje', 'Se agrega la noticia del peaje (f_peaje).', (select array_agg(id) from public.news_bank)) ->> 'id'));
+insert into ctx values ('v4', (public.create_study_version('4.9.0', 'Con peaje', 'Se agrega la noticia del peaje (f_peaje).', (select array_agg(id) from public.news_bank)) ->> 'id'));
 select tst.ok((select status from public.studies where id = (select v::uuid from ctx where k = 'v4')) = 'draft', 'la versión nueva queda en borrador');
 select tst.ok((select count(*) from public.news_items where study_id = (select v::uuid from ctx where k = 'v4')) = 11, 'copia las 11 tarjetas');
 select tst.ok((select item_version from public.news_items where study_id = (select v::uuid from ctx where k = 'v4') and item_key = 'f_peaje') = 2, 'guarda la revisión copiada');
@@ -88,7 +88,7 @@ set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000001', false);
 insert into ctx values ('prev', (select version from public.studies where code = 'lo-reenviarias' and status = 'active'));
 select public.activate_study_version((select v::uuid from ctx where k = 'v4'));
-select tst.ok((select version from public.studies where code = 'lo-reenviarias' and status = 'active') = '4.0.0', 'owner activa la 4.0.0');
+select tst.ok((select version from public.studies where code = 'lo-reenviarias' and status = 'active') = '4.9.0', 'owner activa la 4.0.0');
 select tst.ok((select status from public.studies where code = 'lo-reenviarias' and version = (select v from ctx where k = 'prev')) = 'closed', 'la anterior queda cerrada');
 select tst.ok((select count(*) from public.studies where code = 'lo-reenviarias' and status = 'active') = 1, 'una sola versión activa');
 select tst.ok(tst.err($$select public.activate_study_version((select id from public.studies where version = '1.0.0'))$$) like '%historica%', 'la 1.0.0 no se reactiva');
