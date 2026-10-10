@@ -67,6 +67,7 @@ function compute(all: ShareSessionRow[], allDecisions: ShareDecisionRow[], versi
     sum: summarize(included),
     byType: pairedComparison(decisions, ids, (d) => d.is_real, (d) => !d.is_real),
     byImage: pairedComparison(decisions, ids, (d) => d.image_shown, (d) => !d.image_shown),
+    imageVaries: decisions.some((d) => d.image_shown) && decisions.some((d) => !d.image_shown),
     items: itemTable(decisions, ids),
     position: byPosition(decisions, ids),
   }
@@ -132,11 +133,17 @@ function Body({ m, firstOnly }: { m: M; firstOnly: boolean }) {
             <Pair a={m.byType.a} b={m.byType.b} la="Confirmadas" lb="Falsas" />
             <TestResultView r={m.byType.test} />
           </Section>
-          <Section title="Con imagen y sin imagen (exploratorio)" description="La imagen se asigna al azar a la mitad de las tarjetas de cada partida, equilibrando reales y falsas. Comparación dentro de cada sesión.">
-            <Pair a={m.byImage.a} b={m.byImage.b} la="Con imagen" lb="Sin imagen" />
-            <TestResultView r={m.byImage.test} />
-            <p className="mt-2 text-xs text-muted">Exploratorio: con 5 tarjetas por condición, la medición por persona es gruesa. Un resultado no significativo no demuestra ausencia de efecto.</p>
-          </Section>
+          {m.imageVaries ? (
+            <Section title="Con imagen y sin imagen (exploratorio)" description="La imagen se asigna al azar a parte de las tarjetas de cada partida (image_share), equilibrando reales y falsas. Comparación dentro de cada sesión.">
+              <Pair a={m.byImage.a} b={m.byImage.b} la="Con imagen" lb="Sin imagen" />
+              <TestResultView r={m.byImage.test} />
+              <p className="mt-2 text-xs text-muted">Exploratorio: con pocas tarjetas por condición, la medición por persona es gruesa. Un resultado no significativo no demuestra ausencia de efecto.</p>
+            </Section>
+          ) : (
+            <Section title="Imágenes" description="En esta selección todas las tarjetas se mostraron igual (todas con su imagen o todas sin ella), así que no hay comparación con y sin imagen.">
+              <p className="text-sm text-muted">La 4.0.0 muestra en todas las noticias las mismas imágenes de la 3.x.</p>
+            </Section>
+          )}
           <Section title="A lo largo de la partida" description="Difusión sin verificar según la posición de la noticia (1 a 10). El orden de las noticias es aleatorio.">
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={m.position}><CartesianGrid stroke="#eee" /><XAxis dataKey="posicion" fontSize={11} /><YAxis domain={[0, 1]} tickFormatter={pctTick} fontSize={11} />

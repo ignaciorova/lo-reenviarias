@@ -55,7 +55,7 @@ set role anon;
 select tst.ok((select p ->> 'mode' from pa) = 'responsabilidad', 'payload en modo responsabilidad');
 select tst.ok((select jsonb_array_length(p -> 'items') from pa) = 10, '10 noticias');
 select tst.ok((select p::text from pa) not like '%"says"%' and (select p::text from pa) not like '%is_real%', 'el payload no revela la respuesta ni la lectura de las fuentes');
-select tst.ok((select count(*) from pa, jsonb_array_elements(p -> 'items') i where (i ->> 'image_shown')::boolean) = 5, 'imagen en 5 de 10 tarjetas');
+select tst.ok((select count(*) from pa, jsonb_array_elements(p -> 'items') i where (i ->> 'image_shown')::boolean and i -> 'display' ? 'media') = 10, 'con image_share = 1 (configuración de la 4.0.0), las 10 tarjetas llevan su imagen');
 select tst.ok((select count(*) from pa, jsonb_array_elements(p -> 'items') i where not (i ->> 'image_shown')::boolean and i -> 'display' ? 'media') = 0, 'sin imagen asignada no se envía el medio');
 select tst.ok((select count(*) from pa, jsonb_array_elements(p -> 'items') i where (i ->> 'ask_why')::boolean) = 2, '«¿Por qué?» en 2 tarjetas');
 select tst.ok((select count(*) from pa, jsonb_array_elements(p -> 'items') i where jsonb_array_length(i -> 'sources') = 3) = 10, 'cada tarjeta ofrece 3 fuentes');
@@ -64,7 +64,8 @@ select public.submit_survey((select v from v4 where k='a'), 'pre', '{"primera_ve
 reset role;
 
 -- Balance de imágenes por noticia en muchas sesiones (cada noticia ~50 %) y reales/falsas en cada sesión
-update public.studies set config = config || '{"max_sessions_per_minute": 1000}' where version = '4.0.0';
+-- El mecanismo de asignación parcial se sigue probando con image_share = 0,5
+update public.studies set config = config || '{"max_sessions_per_minute": 1000, "image_share": 0.5}' where version = '4.0.0';
 set role anon;
 create temp table many as select g, public.start_session_v4(gen_random_uuid(), true) as p from generate_series(1, 300) g;
 reset role;

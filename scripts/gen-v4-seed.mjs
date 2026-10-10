@@ -17,7 +17,7 @@ for (const i of items) {
 
 const config = {
   mode: 'responsabilidad', items_per_session: 10, seconds_per_item: 20, verify_seconds: 60, min_read_ms: 2000,
-  start_points: 600, image_share: 0.5, why_items: 2, hints_per_session: 0, show_crowd_feedback: false,
+  start_points: 600, image_share: 1, why_items: 2, hints_per_session: 0, show_crowd_feedback: false,
   leaderboard: true, percentile_min_n: 20, public_stats_min_n: 10, max_sessions_per_minute: 120,
 }
 

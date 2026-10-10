@@ -14,7 +14,7 @@ Por cada una de las 10 noticias (5 confirmadas y 5 falsas, en orden aleatorio):
 4. En 2 noticias al azar se pregunta «¿Por qué?» (7 opciones cortas).
 5. Ve si la noticia era real o falsa, su explicación y, si verificó, si leyó bien la fuente.
 
-La imagen se muestra en 5 de las 10 tarjetas de cada partida, con 2 o 3 reales entre ellas, elegidas al azar en el servidor. Así cada noticia aparece con imagen en cerca de la mitad de las partidas (comprobado en 300 sesiones simuladas: entre 40 % y 60 % por noticia).
+Cada noticia se muestra con la misma imagen o clip que en la 3.x, en todas las tarjetas (`image_share = 1`). Decisión del 10/10/2026 (Gerardo): no se usan tarjetas sin foto. Por eso la 4.0.0 **no estima el efecto de la imagen**. El mecanismo para mostrar la imagen solo en una parte de las tarjetas, al azar y equilibrando reales y falsas, sigue en el servidor y está probado con `image_share = 0,5` (300 sesiones simuladas: entre 40 % y 60 % por noticia), por si una versión futura quiere medirlo.
 
 Antes de jugar se pregunta «¿Es la primera vez que juegas este juego?». El navegador además recuerda si ya terminó otra partida de la 4.x (`device_replay`).
 
@@ -75,7 +75,7 @@ Las proporciones sin denominador (por ejemplo, «con aviso» en quien no reenvi�
 - **Estimación principal:** promedio entre sesiones de la difusión sin verificación previa, con IC 95 % (t de Student sobre las medias por sesión). Se acompaña de su distribución, los dos límites por tiempo agotado y el desglose por tipo de noticia.
 - **Hábitos declarados y decisiones simuladas:** se analizan por separado. La encuesta (hábitos declarados) y el juego (decisiones simuladas) son instrumentos independientes y **no se vinculan persona a persona**. No se calcula ninguna correlación individual entre ellos. Si se incorporan los resultados agregados de la encuesta, se comparan solo a nivel de grupo y de forma descriptiva (sección 6).
 - **Exploratorio, sin prueba confirmatoria:**
-  - Imagen frente a sin imagen: Wilcoxon de rangos con signo pareada por sesión. La imagen se asigna al azar por noticia.
+  - Imagen frente a sin imagen: no aplica en la 4.0.0, porque todas las tarjetas llevan imagen. El panel solo lo calcula si una versión asigna la imagen a una parte de las tarjetas.
   - Confirmadas frente a falsas.
   - Cambio a lo largo de la partida.
   - Repeticiones.
@@ -108,7 +108,7 @@ Lo que queda en la base sin uso: las columnas `survey_code`, `survey_intent` y `
 
 ## 7. Panel de investigación
 
-- **Responsabilidad (4.x):** muestra de análisis y recorrido de exclusiones; indicador principal con IC y límites; secundarios; distribución; estados; por tipo, por imagen y por posición; tabla por noticia.
+- **Responsabilidad (4.x):** muestra de análisis y recorrido de exclusiones; indicador principal con IC y límites; secundarios; distribución; estados; por tipo y por posición (y por imagen, si la versión la asigna al azar); tabla por noticia.
   - **Encuesta de hábitos:** un recuadro aparte recuerda que es un instrumento independiente, sin vinculación persona a persona, con sus limitaciones.
   - **Exportación:** XLSX y CSV de participantes, decisiones y diccionario. Cada descarga queda en la auditoría.
 - **Banco de noticias → Fuentes:** edita las tres fuentes de cada noticia y lo que dice cada una. Lo que dice cada fuente es la respuesta correcta, que el jugador nunca recibe. En la 4.x no se puede armar una versión con noticias sin sus tres fuentes.
