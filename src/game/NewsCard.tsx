@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react'
 import type { ItemT } from '../lib/api'
+import { MediaFrame, MediaSchema } from './MediaFrame'
 
 export type CardHandle = { fly: (dir: 1 | -1) => void }
 type Props = { item: ItemT; back?: boolean; hint?: string; disabled?: boolean; onSwipe?: (dir: 1 | -1) => void }
@@ -28,6 +29,9 @@ export const NewsCard = forwardRef<CardHandle, Props>(function NewsCard({ item, 
   }))
 
   const d = item.display
+  // Imagen o clip (versión 3.0.0); si el dato no es válido, la tarjeta se muestra sin él, como en la 2.0.0.
+  const parsedMedia = MediaSchema.safeParse((d as { media?: unknown }).media)
+  const media = parsedMedia.success ? parsedMedia.data : undefined
   return (
     <div
       ref={el}
@@ -49,12 +53,20 @@ export const NewsCard = forwardRef<CardHandle, Props>(function NewsCard({ item, 
       onPointerUp={() => end()}
       onPointerCancel={() => end()}
     >
-      <div className="relative grid flex-[0_0_42%] place-items-center overflow-hidden" style={{ background: d.bg }}>
-        <span className="absolute top-3.5 left-0 rounded-r-lg bg-fake px-3 py-1 font-display text-[13px] font-extrabold text-white">{d.band}</span>
-        <span aria-hidden className="text-[clamp(70px,22vw,110px)] leading-none drop-shadow-[0_6px_10px_rgba(0,0,0,.25)]">{d.emo}</span>
-        <span aria-hidden className="absolute right-[14%] bottom-[14%] rotate-12 text-[clamp(34px,10vw,52px)]">{d.emo2}</span>
-        <span className="absolute right-2.5 bottom-2 rounded-md bg-black/35 px-1.5 py-0.5 text-[10px] text-white">Juego académico ULACIT</span>
-      </div>
+      {media ? (
+        <div className="relative flex-[0_0_55%] overflow-hidden">
+          <MediaFrame m={media} who={d.who} many={d.many} back={back} />
+          <span className="absolute top-2.5 right-0 rounded-l-lg bg-fake px-3 py-1 font-display text-[13px] font-extrabold text-white">{d.band}</span>
+          <span className="absolute right-2.5 bottom-2 rounded-md bg-black/45 px-1.5 py-0.5 text-[10px] text-white">Juego académico ULACIT</span>
+        </div>
+      ) : (
+        <div className="relative grid flex-[0_0_42%] place-items-center overflow-hidden" style={{ background: d.bg }}>
+          <span className="absolute top-3.5 left-0 rounded-r-lg bg-fake px-3 py-1 font-display text-[13px] font-extrabold text-white">{d.band}</span>
+          <span aria-hidden className="text-[clamp(70px,22vw,110px)] leading-none drop-shadow-[0_6px_10px_rgba(0,0,0,.25)]">{d.emo}</span>
+          <span aria-hidden className="absolute right-[14%] bottom-[14%] rotate-12 text-[clamp(34px,10vw,52px)]">{d.emo2}</span>
+          <span className="absolute right-2.5 bottom-2 rounded-md bg-black/35 px-1.5 py-0.5 text-[10px] text-white">Juego académico ULACIT</span>
+        </div>
+      )}
       <div className="flex flex-1 flex-col gap-1.5 px-[18px] pt-3.5 pb-4">
         <div className="flex items-center gap-1.5 text-[13px] text-muted">
           <b>{d.who}</b><span className="italic">↪︎ {d.many ? 'Reenviado muchas veces' : 'Reenviado'}</span>
