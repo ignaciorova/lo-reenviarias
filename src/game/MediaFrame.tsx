@@ -2,8 +2,13 @@ import { z } from 'zod'
 import { useEffect, useRef } from 'react'
 
 /** Imagen o clip corto de una noticia, presentado como lo vería alguien en su red social (versión 3.0.0). */
-// Solo archivos del propio sitio, en /media/ (el marco nunca carga nada de otro dominio).
-const localFile = z.string().regex(/^\/media\/[a-z0-9/_-]+\.(jpg|png|svg|webp|mp4|webm)$/)
+// Solo archivos propios: los del sitio, en /media/, o los subidos desde el panel al bucket «noticias» del
+// proyecto de Supabase (se guarda solo la ruta; el dominio se toma de la configuración, nunca del dato).
+const localFile = z.string().regex(/^(\/media\/[a-z0-9/_-]+\.(jpg|png|svg|webp|mp4|webm)|\/storage\/v1\/object\/public\/noticias\/[a-z0-9-]+\.(jpg|png|webp|mp4))$/)
+
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+/** URL que carga el navegador para un archivo de MediaSchema. */
+export const mediaUrl = (src: string) => (src.startsWith('/storage/') ? `${SUPABASE_URL}${src}` : src)
 export const MediaSchema = z.object({
   kind: z.enum(['image', 'video']),
   src: localFile,
@@ -31,14 +36,14 @@ function Visual({ m, back, className = '' }: { m: Media; back?: boolean; classNa
   }, [back])
   if (m.kind === 'video') {
     return (
-      <video ref={v} poster={m.poster} muted loop playsInline preload="metadata" aria-label={m.alt}
+      <video ref={v} poster={m.poster && mediaUrl(m.poster)} muted loop playsInline preload="metadata" aria-label={m.alt}
         className={`pointer-events-none h-full w-full object-cover ${className}`}>
-        {m.webm && <source src={m.webm} type="video/webm" />}
-        <source src={m.src} type="video/mp4" />
+        {m.webm && <source src={mediaUrl(m.webm)} type="video/webm" />}
+        <source src={mediaUrl(m.src)} type="video/mp4" />
       </video>
     )
   }
-  return <img src={m.src} alt={m.alt} draggable={false} style={{ objectPosition: m.focus }} className={`pointer-events-none h-full w-full object-cover ${className}`} />
+  return <img src={mediaUrl(m.src)} alt={m.alt} draggable={false} style={{ objectPosition: m.focus }} className={`pointer-events-none h-full w-full object-cover ${className}`} />
 }
 
 function Credit({ m }: { m: Media }) {

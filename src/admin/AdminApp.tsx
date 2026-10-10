@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { isConfigured, supabase } from '../lib/supabase'
 import { DataContext, useData, useResearchDataState, type AdminProfile } from './data'
@@ -15,6 +15,8 @@ import Exports from './pages/Exports'
 import Quality from './pages/Quality'
 import Methodology from './pages/Methodology'
 import Admins from './pages/Admins'
+import Bank from './pages/Bank'
+import Versions from './pages/Versions'
 
 export default function AdminApp() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -142,11 +144,15 @@ const NAV = [
   ['', 'Resumen'], ['respuestas', 'Respuestas'], ['noticias', 'Por noticia'], ['comportamiento', 'Comportamiento'],
   ['laboratorio', 'Laboratorio de análisis'], ['abiertas', 'Preguntas abiertas'], ['exportar', 'Exportar'],
   ['calidad', 'Calidad de datos'], ['metodologia', 'Metodología'], ['compartir', 'Compartir'],
+  ['banco', 'Banco de noticias'], ['versiones', 'Versiones del juego'],
 ] as const
+// Pantallas de edición: no usan los filtros de análisis
+const NO_FILTERS = ['/admin/banco', '/admin/versiones']
 
 function Shell({ profile, email }: { profile: AdminProfile; email: string }) {
   const ctx = useResearchDataState(profile)
   const [open, setOpen] = useState(false)
+  const { pathname } = useLocation()
   const nav = profile.role === 'owner' ? [...NAV, ['administradores', 'Administradores'] as const] : NAV
   return (
     <DataContext.Provider value={ctx}>
@@ -170,7 +176,7 @@ function Shell({ profile, email }: { profile: AdminProfile; email: string }) {
         </nav>
         <main className="min-w-0 flex-1">
           <DataStatus />
-          <FilterBar />
+          {!NO_FILTERS.includes(pathname.replace(/\/$/, '')) && <FilterBar />}
           <Routes>
             <Route index element={<Dashboard />} />
             <Route path="respuestas" element={<Explorer />} />
@@ -182,6 +188,8 @@ function Shell({ profile, email }: { profile: AdminProfile; email: string }) {
             <Route path="calidad" element={<Quality />} />
             <Route path="metodologia" element={<Methodology />} />
             <Route path="compartir" element={<Share />} />
+            <Route path="banco" element={<Bank />} />
+            <Route path="versiones" element={<Versions />} />
             {profile.role === 'owner' && <Route path="administradores" element={<Admins />} />}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
