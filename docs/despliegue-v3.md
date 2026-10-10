@@ -54,6 +54,6 @@ No se borra ningún dato. Las sesiones de la 3.0.0 quedan guardadas con su versi
 
 ## Pendiente antes de activar
 
-- **Plenario (noticia falsa del ejército):** la foto de referencia era de CR Hoy, así que no se publica: tiene derechos de autor y asociaría a un medio real con una noticia inventada. Hay que reemplazar `public/media/v3/plenario.jpg` por una imagen generada con IA, como las demás.
+- **Plenario (noticia falsa del ejército):** por decisión de Gerardo (2026-10-10) se usa la foto de referencia del plenario vacío publicada por CR Hoy. No tiene personas, marca de agua ni logo del medio, y lleva la misma etiqueta que las demás. Los derechos de la foto son de CR Hoy: se recomienda pedirle autorización por escrito antes de activar la 3.0.0.
 - **Etiquetas (resuelto 2026-10-10):** las 10 noticias muestran la misma etiqueta, «Imagen ilustrativa · juego académico», para que el origen de la imagen no delate si la noticia es real o falsa.
 - **Comité de ética:** decisión del equipo sobre si el cambio de instrumento requiere aviso.
