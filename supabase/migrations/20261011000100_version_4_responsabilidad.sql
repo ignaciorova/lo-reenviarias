@@ -35,6 +35,7 @@ alter table public.participant_sessions add column if not exists survey_intent t
 alter table public.participant_sessions add column if not exists image_flags   boolean[] not null default '{}';
 alter table public.participant_sessions add column if not exists why_positions smallint[] not null default '{}';
 alter table public.participant_sessions add column if not exists survey_code_at timestamptz;
+alter table public.participant_sessions add column if not exists device_replay boolean;
 do $$ begin
   if not exists (select 1 from pg_constraint where conname = 'participant_sessions_survey_code_chk') then
     alter table public.participant_sessions add constraint participant_sessions_survey_code_chk
@@ -49,6 +50,7 @@ comment on column public.participant_sessions.survey_code is 'Código seudónimo
 comment on column public.participant_sessions.entry_origin is 'Por dónde entró: QR de la encuesta, QR del juego, enlace u otro (parámetro ?origen=).';
 comment on column public.participant_sessions.survey_intent is 'Lo que la persona dijo de la encuesta al empezar: la responderá antes, ya la respondió, después o no.';
 comment on column public.participant_sessions.image_flags is 'Por posición: si la tarjeta mostró imagen (asignación aleatoria balanceada).';
+comment on column public.participant_sessions.device_replay is 'El navegador ya tenía una partida 4.0.0 terminada (marca local). Complementa la pregunta «¿Es la primera vez?».';
 comment on column public.participant_sessions.why_positions is 'Posiciones en las que se preguntó «¿Por qué?» (2 al azar).';
 create index if not exists participant_sessions_survey_code_idx on public.participant_sessions (survey_code) where survey_code is not null;
 
@@ -278,7 +280,7 @@ begin
 
   select jsonb_agg(jsonb_build_object('position', d.position, 'headline', n.headline, 'is_real', n.is_real, 'state', d.state,
                                       'belief', d.belief, 'belief_correct', d.belief_correct, 'final_action', d.final_action,
-                                      'verified', d.first_action = 'verificar') order by d.position)
+                                      'verified', coalesce(d.first_action = 'verificar', false)) order by d.position)
     into v_recap from public.share_decisions d join public.news_items n on n.id = d.news_item_id where d.session_id = p_session_id;
 
   return jsonb_build_object(
@@ -299,7 +301,8 @@ create or replace function public.start_session_v4(
   p_entry_origin text default null,
   p_survey_intent text default null,
   p_survey_code text default null,
-  p_study_code text default 'lo-reenviarias'
+  p_study_code text default 'lo-reenviarias',
+  p_device_replay boolean default null
 ) returns jsonb language plpgsql volatile security definer set search_path = '' as $$
 declare
   st public.studies;
@@ -358,11 +361,11 @@ begin
 
   insert into public.participant_sessions
     (id, study_id, instrument_version, consent_accepted, consent_at, presentation_order, hints_remaining,
-     device_class, reduced_motion, survey_code, survey_code_at, entry_origin, survey_intent, image_flags, why_positions)
+     device_class, reduced_motion, survey_code, survey_code_at, entry_origin, survey_intent, image_flags, why_positions, device_replay)
   values
     (p_session_id, st.id, st.version, true, now(), v_order, 0,
      p_device_class, p_reduced_motion, v_code, case when v_code is null then null else now() end,
-     p_entry_origin, p_survey_intent, v_flags, v_why)
+     p_entry_origin, p_survey_intent, v_flags, v_why, p_device_replay)
   on conflict (id) do nothing;
 
   return public.get_session_v4(p_session_id);
@@ -584,7 +587,7 @@ end $$;
 -- ---------------------------------------------------------------------------
 create or replace view public.v_share_decisions with (security_invoker = true) as
 select d.id as decision_id, d.session_id, s.instrument_version, s.status as session_status, s.is_test, s.exclusion_reason,
-       s.entry_origin, s.survey_intent, s.survey_code, s.device_class,
+       s.entry_origin, s.survey_intent, s.survey_code, s.device_class, s.device_replay,
        n.item_key, n.category, n.headline, d.is_real, d.position, d.image_shown,
        d.first_action, d.first_action_ms, d.timed_out, d.timeout_stage, d.sources_opened, d.source_kind, d.read_ms,
        d.evaluation, d.evaluation_correct, d.effective_verification, d.final_action, d.belief, d.belief_correct,
@@ -599,6 +602,7 @@ select s.id as session_id, s.instrument_version, s.status, s.is_test, s.exclusio
        s.entry_origin, s.survey_intent, s.survey_code, s.survey_code_at, s.device_class, s.started_at, s.completed_at, s.duration_seconds,
        (select r.option_value from public.survey_responses r join public.survey_questions q on q.id = r.question_id
          where r.session_id = s.id and q.question_key = 'primera_vez') as primera_vez,
+       s.device_replay,
        cardinality(s.presentation_order) as items_total,
        count(d.id)::int as cards_done,
        count(d.id) filter (where d.state in ('E1','E2','E3','E4','E5','E6'))::int as r_answered,
@@ -802,7 +806,7 @@ revoke all on function public._v4_summary(uuid) from public, anon, authenticated
 revoke all on function public._check_sources(jsonb) from public, anon, authenticated;
 
 do $$ declare f text; begin
-  foreach f in array array['study_info(text)','start_session_v4(uuid,boolean,text,boolean,text,text,text,text)','get_session_v4(uuid)',
+  foreach f in array array['study_info(text)','start_session_v4(uuid,boolean,text,boolean,text,text,text,text,boolean)','get_session_v4(uuid)',
                            'set_survey_code(uuid,text,text)','open_source(uuid,int,text)','submit_card(uuid,int,jsonb)','complete_session_v4(uuid)'] loop
     execute format('revoke all on function public.%s from public', f);
     execute format('grant execute on function public.%s to anon, authenticated', f);

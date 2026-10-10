@@ -168,7 +168,7 @@ export function CardEditor({ initial, takenKeys, categories, canEdit, onSaved, o
           <p className="mb-2 text-xs font-bold text-muted uppercase">Vista previa en el juego</p>
           <div className="relative mx-auto h-[540px] w-[320px] rounded-[28px] bg-[#2B1638] p-3">
             <div className="relative h-full w-full">
-              <NewsCard item={{ position: 1, item_id: '00000000-0000-4000-8000-000000000000', headline: c.headline || 'Escribe el titular…', display: previewDisplay }} hint={showHint ? c.hint : undefined} disabled />
+              <NewsCard item={{ headline: c.headline || 'Escribe el titular…', display: previewDisplay }} hint={showHint ? c.hint : undefined} disabled />
             </div>
           </div>
           <label className="mt-2 flex items-center justify-center gap-2 text-sm"><input type="checkbox" checked={showHint} onChange={(e) => setShowHint(e.target.checked)} /> Mostrar la pista</label>

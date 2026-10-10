@@ -22,10 +22,12 @@ const config = {
 }
 
 const sources = (i) => i.consult.map((s) => {
-  const o = { kind: s.kind, label: s.label ?? s.name, excerpt: s.excerpt, says: s.says, simulated: !!s.simulated }
+  const excerpt = s.excerpt || (s.kind === 'comentarios' ? 'Lo que comentan otras personas en un grupo. Nadie cita una fuente.' : '')
+  if (excerpt.length < 10) throw new Error(`${i.key}/${s.kind}: falta el extracto`)
+  const o = { kind: s.kind, label: (s.label ?? s.name).replace(/ \(simulados\)$/, ''), excerpt, says: s.says, simulated: !!s.simulated }
   if (s.url) o.url = s.url
   if (s.published) o.published = s.published
-  if (s.comments) o.comments = s.comments
+  if (s.comments) o.comments = s.comments.map((c) => ({ who: c.who ?? c.user, text: c.text }))
   return o
 })
 
@@ -49,10 +51,13 @@ on conflict (study_id, question_key) do nothing;
 
 for (const i of items) {
   const d = i.dossier ?? {}
-  const src = (d.sources ?? []).find((s) => s.supports === 'confirma') ?? (d.sources ?? [])[0] ?? {}
+  const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v ?? '')
+  const conf = (d.sources ?? []).filter((s) => s.supports === 'confirma' && /^https:/.test(s.url ?? ''))
+  const src = conf.find((s) => isDate(s.published)) ?? conf[0] ?? {}
+  if (!isDate(src.published)) src.published = null
   const status = d.status === 'verificada' ? 'verificada' : d.status === 'ficticia_documentada' ? 'ficticia_documentada' : 'pendiente'
   const notes = d.notes ?? null
-  const label = i.real ? `Fuente citada: ${src.outlet ?? 'medios nacionales'}` : 'Sin fuente'
+  const label = i.src_label ?? (i.real ? `Fuente citada: ${src.outlet ?? 'medios nacionales'}` : 'Sin fuente')
   sql += `
 -- ${i.key}
 update public.news_bank set

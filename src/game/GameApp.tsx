@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { api, friendlyMessage, localSession, newSessionId, type QuestionT, type SessionPayloadT, type SummaryT } from '../lib/api'
 import { isConfigured } from '../lib/supabase'
+import { apiV4 } from '../lib/apiV4'
 import { GameBoard } from './GameBoard'
 import { FinalScreen } from './FinalScreen'
 import { Chips, Logo, Notice, PrimaryButton, Spinner } from './ui'
@@ -16,7 +17,26 @@ function stageFor(p: SessionPayloadT): Stage {
   return 'post'
 }
 
+const GameV4 = lazy(() => import('./v4/GameV4'))
+
+/**
+ * Elige el juego según la versión activa: la 4.0.0 («responsabilidad») tiene su propio flujo;
+ * las versiones 1.0.0–3.1.0 siguen con el juego de clasificación sin ningún cambio.
+ * Si el servidor no tiene la función study_info (base sin la migración 4.0.0), se usa el juego anterior.
+ */
 export default function GameApp() {
+  const [mode, setMode] = useState<'loading' | 'v4' | 'legacy'>(isConfigured ? 'loading' : 'legacy')
+  useEffect(() => {
+    if (!isConfigured) return
+    apiV4.studyInfo().then((i) => setMode(i.mode === 'responsabilidad' ? 'v4' : 'legacy')).catch(() => setMode('legacy'))
+  }, [])
+  const loading = <div className="grid min-h-dvh place-items-center bg-u3 text-white"><Spinner label="Cargando…" /></div>
+  if (mode === 'loading') return loading
+  if (mode === 'v4') return <Suspense fallback={loading}><GameV4 /></Suspense>
+  return <LegacyGame />
+}
+
+function LegacyGame() {
   const reduced = useMemo(prefersReduced, [])
   const [stage, setStage] = useState<Stage>('loading')
   const [payload, setPayload] = useState<SessionPayloadT | null>(null)

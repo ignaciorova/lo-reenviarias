@@ -45,7 +45,7 @@ test.describe('Banco de noticias y versiones', () => {
     await go(page, 'Banco de noticias')
     await expect(page.getByRole('heading', { name: 'Banco de noticias' })).toBeVisible()
     await expect(page.getByText('Filtros')).toHaveCount(0)
-    await expect(page.locator('li').filter({ hasText: 'El pasaje de una ruta de bus en Alajuela' })).toBeVisible()
+    await expect(page.locator('li').filter({ hasText: 'El pasaje de la ruta 220 en Alajuela' })).toBeVisible()
 
     // Nueva noticia con imagen
     await page.getByRole('button', { name: '+ Nueva noticia' }).click()
@@ -73,7 +73,7 @@ test.describe('Banco de noticias y versiones', () => {
     expect(card.item_key).toMatch(/^f_desde_manana_peaje/)
 
     // Editar una noticia que está en juego: no cambia la versión activa
-    const bus = page.locator('li').filter({ hasText: 'El pasaje de una ruta de bus en Alajuela' })
+    const bus = page.locator('li').filter({ hasText: 'El pasaje de la ruta 220 en Alajuela' })
     await bus.getByRole('button', { name: 'Editar' }).click()
     await page.getByLabel('Etiqueta superior').fill(`SUBE ${tag}`.slice(0, 20))
     await page.getByRole('button', { name: 'Guardar en el banco' }).click()
@@ -116,9 +116,9 @@ test.describe('Banco de noticias y versiones', () => {
   test('viewer ve el banco pero no puede editar ni activar', async ({ page }) => {
     await loginAs(page, tok('viewer'), '00000000-0000-4000-8000-0000000000cc', 'viewer-e2e@test.local')
     await go(page, 'Banco de noticias')
-    await expect(page.locator('li').filter({ hasText: 'El pasaje de una ruta de bus en Alajuela' })).toBeVisible()
+    await expect(page.locator('li').filter({ hasText: 'El pasaje de la ruta 220 en Alajuela' })).toBeVisible()
     await expect(page.getByRole('button', { name: '+ Nueva noticia' })).toHaveCount(0)
-    await page.locator('li').filter({ hasText: 'El pasaje de una ruta de bus en Alajuela' }).getByRole('button', { name: 'Ver' }).click()
+    await page.locator('li').filter({ hasText: 'El pasaje de la ruta 220 en Alajuela' }).getByRole('button', { name: 'Ver' }).click()
     await expect(page.getByText('Tu rol (viewer) permite ver')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Guardar en el banco' })).toHaveCount(0)
     await go(page, 'Versiones del juego')
