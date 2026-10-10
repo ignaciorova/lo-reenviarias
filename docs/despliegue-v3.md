@@ -35,6 +35,8 @@ Solo puede haber una versión activa (índice `studies_one_active_per_code`), po
 
 Comprobación: jugar una partida en el celular y marcarla como prueba en el panel.
 
+**Hecho en producción (2026-10-10 01:51 UTC), a pedido de Gerardo:** la 3.0.0 quedó `active` y la 2.0.0 `closed`. Para verificarlo se llamó a `start_session` dentro de un bloque que se revierte, sin crear ninguna sesión: entregó la versión 3.0.0 con 10 noticias, las 10 con medio.
+
 ## Vuelta atrás
 
 ```sql
