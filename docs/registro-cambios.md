@@ -2,6 +2,32 @@
 
 Los cambios se separan en **técnicos** (no alteran lo que se mide) y **metodológicos** (pueden alterar las respuestas o su interpretación). Los datos de versiones distintas del instrumento no deben combinarse sin justificarlo en el análisis.
 
+## Instrumento 4.0.0 (borrador, en la rama `claude/version-4`; no activo)
+
+No es comparable con 1.0.0–3.1.0: cambia la variable principal. Detalle en [version-4.md](version-4.md).
+
+### Cambios metodológicos
+
+| # | Cambio | Motivo | Efecto esperado en los datos |
+|---|---|---|---|
+| M1 | La decisión es **Reenviar, Reenviar con aviso, Verificar primero o No reenviar**; ya no se clasifica «Real / Falsa». | El objetivo es la responsabilidad antes de compartir, no la detección. | Indicador principal nuevo: difusión simulada sin verificación previa, (E1 + E2) / R. |
+| M2 | **Verificación con fuentes**: oficial, medio o comentarios; la persona dice qué dice la fuente y decide de nuevo. | Distinguir consulta de verificación efectiva. | Verificación efectiva = fuente adecuada + 2 s de lectura medidos por el servidor + evaluación correcta. |
+| M3 | **Creencia** (Sí, No, No sé) declarada después de decidir; es lo único que da puntos (+100, −100, 0). | Medir el reconocimiento de incertidumbre sin recordar la veracidad antes de decidir. | La creencia puede ajustarse a la decisión; se trata como límite inferior. |
+| M4 | Sin lupas ni alcance simulado. | Evitar ayudas que cambien la conducta medida. | — |
+| M5 | Imagen en 5 de 10 tarjetas, al azar por noticia, equilibrando reales y falsas. | Efecto de la imagen como análisis exploratorio. | Cada noticia con imagen en ≈ 50 % de las partidas. |
+| M6 | Titulares y fuentes corregidos (r_cuba, r_arancel, f_sinpe y otros); 5 reales y 5 falsas con expediente. | Precisión de los estímulos. | Las noticias no son idénticas a las de 3.x. |
+| M7 | Pregunta inicial «¿Es la primera vez que juegas?» y marca de otra partida en el dispositivo. | El análisis principal usa solo primeras partidas. | — |
+| M8 | Encuesta de Google Forms enlazada por código seudónimo voluntario. | Relacionar hábitos declarados con decisiones simuladas. | Solo se unen quienes usan el código. |
+
+### Cambios técnicos
+
+| # | Cambio |
+|---|---|
+| T1 | Tablas `share_decisions` y `source_opens`; vistas `v_share_decisions` y `v_share_sessions`; funciones `start_session_v4`, `submit_card`, `open_source`, `set_survey_code`, `complete_session_v4`, `study_info`. |
+| T2 | `start_session` (1.0.0–3.1.0) se niega con la 4.x activa. |
+| T3 | Panel: pantalla «Responsabilidad (4.x)», editor de fuentes en el banco, encuesta del borrador en Versiones. Las pantallas de 1.0.0–3.1.0 excluyen las sesiones 4.x. |
+| T4 | En la 4.x no se arma una versión con noticias sin sus tres fuentes. |
+
 ## Instrumento 2.0.0 (activo desde el 9/10/2026)
 
 ### Cambios metodológicos

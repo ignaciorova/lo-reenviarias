@@ -194,6 +194,15 @@ select tst.ok((select count(*) from public.find_sessions_by_code(lower(tst.code(
 select tst.ok(tst.err($$select public.set_draft_survey((select id from public.studies where version = '4.0.0'), null, null)$$) like '%solo_borradores%', 'la encuesta de la versión activa no se cambia');
 select tst.ok(tst.err($$select public.save_news_sources((select id from public.news_bank limit 1), '[{"kind":"oficial","label":"Gobierno","excerpt":"corto","says":"confirma"}]')$$) like '%fuente_extracto_invalido%', 'se validan las fuentes');
 select tst.ok(tst.err($$select public.save_news_sources((select id from public.news_bank limit 1), '[{"kind":"oficial","label":"Gobierno","excerpt":"Un extracto suficientemente largo.","says":"confirma","url":"http://x"}]')$$) like '%fuente_url_invalida%', 'solo enlaces https');
+reset role;
+insert into public.news_bank (item_key, headline, is_real, category, explanation, hint, red_flags, display, validation_status)
+  select 'sin_fuentes', b.headline || ' (copia)', b.is_real, b.category, b.explanation, b.hint, b.red_flags, b.display, 'pendiente' from public.news_bank b where b.item_key = 'f_sinpe';
+create temp table nosrc as select id from public.news_bank where item_key = 'sin_fuentes';
+grant select on nosrc to authenticated;
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000004', false);
+select tst.ok(tst.err($$select public.create_study_version('4.8.0', 'Prueba', 'Una noticia sin fuentes.', (select array_agg(id) from public.news_bank where not archived))$$) like '%faltan_fuentes%', 'en la 4.x no se arma una versión con noticias sin fuentes');
+select public.set_news_card_archived((select id from nosrc), true);
 create temp table dv as select (public.create_study_version('4.7.0', 'Prueba', 'Borrador de prueba con fuentes.', (select array_agg(id) from public.news_bank where not archived)) ->> 'id')::uuid as id;
 select public.set_draft_survey((select id from dv), 'https://docs.google.com/forms/d/e/1FAIpQLSf_prueba-123/viewform', 'entry.123456789');
 select tst.ok(tst.err($$select public.set_draft_survey((select id from dv), 'https://evil.example/forms', null)$$) like '%url_de_encuesta_invalida%', 'solo enlaces de Google Forms');

@@ -24,6 +24,8 @@ const GameV4 = lazy(() => import('./v4/GameV4'))
  * las versiones 1.0.0–3.1.0 siguen con el juego de clasificación sin ningún cambio.
  * Si el servidor no tiene la función study_info (base sin la migración 4.0.0), se usa el juego anterior.
  */
+declare const __IS_PREVIEW__: boolean
+
 export default function GameApp() {
   const [mode, setMode] = useState<'loading' | 'v4' | 'legacy'>(isConfigured ? 'loading' : 'legacy')
   useEffect(() => {
@@ -32,6 +34,14 @@ export default function GameApp() {
   }, [])
   const loading = <div className="grid min-h-dvh place-items-center bg-u3 text-white"><Spinner label="Cargando…" /></div>
   if (mode === 'loading') return loading
+  // Una vista previa de rama sin la 4.x activa estaría escribiendo partidas reales en la base de producción: no se juega
+  if (mode === 'legacy' && __IS_PREVIEW__) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-u3 px-6 text-center text-white">
+        <p className="max-w-sm">Esta vista previa todavía no está conectada a una base de pruebas, así que no se puede jugar aquí. El juego público sigue en su dirección de siempre.</p>
+      </main>
+    )
+  }
   if (mode === 'v4') return <Suspense fallback={loading}><GameV4 /></Suspense>
   return <LegacyGame />
 }

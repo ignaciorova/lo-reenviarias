@@ -17,6 +17,7 @@ import Methodology from './pages/Methodology'
 import Admins from './pages/Admins'
 import Bank from './pages/Bank'
 import Versions from './pages/Versions'
+import Responsabilidad from './pages/Responsabilidad'
 
 export default function AdminApp() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -141,13 +142,13 @@ function NoAccess({ email }: { email: string }) {
 }
 
 const NAV = [
-  ['', 'Resumen'], ['respuestas', 'Respuestas'], ['noticias', 'Por noticia'], ['comportamiento', 'Comportamiento'],
+  ['', 'Resumen'], ['responsabilidad', 'Responsabilidad (4.x)'], ['respuestas', 'Respuestas'], ['noticias', 'Por noticia'], ['comportamiento', 'Comportamiento'],
   ['laboratorio', 'Laboratorio de análisis'], ['abiertas', 'Preguntas abiertas'], ['exportar', 'Exportar'],
   ['calidad', 'Calidad de datos'], ['metodologia', 'Metodología'], ['compartir', 'Compartir'],
   ['banco', 'Banco de noticias'], ['versiones', 'Versiones del juego'],
 ] as const
-// Pantallas de edición: no usan los filtros de análisis
-const NO_FILTERS = ['/admin/banco', '/admin/versiones']
+// Pantallas de edición y de la 4.x: no usan los filtros de análisis de 1.0.0–3.1.0
+const NO_FILTERS = ['/admin/banco', '/admin/versiones', '/admin/responsabilidad']
 
 function Shell({ profile, email }: { profile: AdminProfile; email: string }) {
   const ctx = useResearchDataState(profile)
@@ -175,10 +176,11 @@ function Shell({ profile, email }: { profile: AdminProfile; email: string }) {
           </ul>
         </nav>
         <main className="min-w-0 flex-1">
-          <DataStatus />
+          {pathname.replace(/\/$/, '') !== '/admin/responsabilidad' && <DataStatus />}
           {!NO_FILTERS.includes(pathname.replace(/\/$/, '')) && <FilterBar />}
           <Routes>
             <Route index element={<Dashboard />} />
+            <Route path="responsabilidad" element={<Responsabilidad />} />
             <Route path="respuestas" element={<Explorer />} />
             <Route path="noticias" element={<Items />} />
             <Route path="comportamiento" element={<Behavior />} />

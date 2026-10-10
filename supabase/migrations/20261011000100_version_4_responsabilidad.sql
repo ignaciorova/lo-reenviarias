@@ -773,6 +773,11 @@ begin
   if v_n <> cardinality(array(select distinct unnest(p_card_ids))) then raise exception 'tarjeta_archivada_o_inexistente' using errcode = '22023'; end if;
   if v_n < v_min then raise exception 'pocas_noticias: hacen falta al menos % y elegiste %', v_min, v_n using errcode = '22023'; end if;
   if v_real = 0 or v_real = v_n then raise exception 'faltan_reales_o_falsas' using errcode = '22023'; end if;
+  -- En la 4.x cada noticia necesita sus tres fuentes consultables (oficial, medio, comentarios)
+  if public._is_v4(base) and exists (select 1 from public.news_bank where id = any(p_card_ids)
+                                       and jsonb_array_length(coalesce(consult_sources, '[]'::jsonb)) <> 3) then
+    raise exception 'faltan_fuentes' using errcode = '22023';
+  end if;
 
   insert into public.studies (code, version, title, description, status, config, changelog)
   values (base.code, p_version, coalesce(nullif(btrim(p_title), ''), base.title),

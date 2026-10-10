@@ -34,6 +34,8 @@ export type ResearchData = {
   openResponses: OpenResponseRow[]
   items: NewsItemRow[]
   studies: StudyRow[]
+  /** Sesiones (sin pruebas) por versión, incluidas las de la 4.x */
+  sessionCounts: Record<string, number>
   loadedAt: Date
 }
 
@@ -75,7 +77,13 @@ export function useResearchDataState(profile: AdminProfile): Ctx {
       ])
       if (items.error) throw items.error
       if (studies.error) throw studies.error
-      setData({ sessions: s.rows, decisions: d.rows, openResponses: o.rows, items: items.data as NewsItemRow[], studies: studies.data as StudyRow[], loadedAt: new Date() })
+      // Las sesiones de la 4.x («responsabilidad») tienen su propia pantalla y otras variables: no entran en los indicadores de 1.0.0–3.1.0
+      const v4 = new Set((studies.data as StudyRow[]).filter((st) => st.config?.mode === 'responsabilidad').map((st) => st.version))
+      const sessionCounts: Record<string, number> = {}
+      for (const r of s.rows) if (!r.is_test) sessionCounts[r.instrument_version] = (sessionCounts[r.instrument_version] ?? 0) + 1
+      const legacy = s.rows.filter((r) => !v4.has(r.instrument_version))
+      const ids = new Set(legacy.map((r) => r.session_id))
+      setData({ sessions: legacy, decisions: d.rows.filter((r) => ids.has(r.session_id)), openResponses: o.rows.filter((r) => ids.has(r.session_id)), items: items.data as NewsItemRow[], studies: studies.data as StudyRow[], sessionCounts, loadedAt: new Date() })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron cargar los datos')
     } finally {

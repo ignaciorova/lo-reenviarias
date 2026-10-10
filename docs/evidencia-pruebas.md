@@ -92,3 +92,27 @@ No se probó en remoto un usuario administrador real porque aún no existe ningu
 - **Funciones SECURITY DEFINER ejecutables por anon (7) y authenticated (16):** intencional. Son la API; cada una valida entradas, y las administrativas comprueban el rol por dentro (probado).
 - **RLS sin políticas en `radiografia_respuestas_backup_20261009`:** intencional; el respaldo no debe leerse por la API.
 - Ningún aviso de tablas sin RLS ni de vistas que salten RLS.
+
+## Versión 4.0.0 (rama `claude/version-4`, 10/10/2026)
+
+Entorno local separado de producción: base `lr_e2e4` con todas las migraciones, la 4.0.0 activada solo ahí, PostgREST en el puerto 3002 y Vite en el 5174.
+
+| Conjunto | Resultado |
+|---|---|
+| `npm run db:test` (suites 10, 20, 30 y 40) | 121 + 39 + 22 + 72 aserciones OK |
+| `npx vitest run` | 30 OK (incluye Wilcoxon comparado con scipy, p = 0,008590) |
+| `e2e/v4.spec.ts` (móvil y escritorio) | 8 OK |
+| `e2e/v4-panel.spec.ts` | 3 OK |
+| Suite E2E de 1.0.0–3.1.0 contra `lr_e2e` | 38 OK |
+
+Qué comprueban las E2E de la 4.0.0:
+- Una partida con botones, gestos y teclado produce exactamente los estados esperados (E1 E3 E2 E6 E7 E3 E1 E3 E1 E3) y una lectura medida por el servidor de al menos 2 s.
+- El enlace a Google Forms lleva `usp=pp_url` y el código; el código queda guardado con el momento «después».
+- Al recargar a mitad de una verificación, la partida vuelve a las fuentes y conserva la apertura (E5).
+- Panel: el indicador principal, sus límites y cinco secundarios coinciden con un cálculo SQL independiente sobre las tablas. Un CSV con el formato de Google Forms se une por código. El CSV exportado tiene tantas filas como la vista y deja registro en la auditoría. El owner edita las fuentes (la versión activa no cambia) y el viewer solo las ve. La pantalla no se desborda en un teléfono.
+
+```bash
+bash /tmp/lr4/reset4.sh   # crea lr_e2e4, activa la 4.0.0 solo en local y arranca PostgREST en 3002
+LOCAL_POSTGREST=http://127.0.0.1:3002 VITE_SUPABASE_URL=http://localhost:5174 VITE_SUPABASE_PUBLISHABLE_KEY=$(cat $D/anon.jwt) npx vite --port 5174 &
+E2E_V4=1 E2E_TOKEN_DIR=$D E2E_LOCAL_DB=lr_e2e4 E2E_BASE_URL=http://localhost:5174 npx playwright test e2e/v4.spec.ts e2e/v4-panel.spec.ts
+```
