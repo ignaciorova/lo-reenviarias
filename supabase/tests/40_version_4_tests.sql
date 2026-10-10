@@ -47,7 +47,7 @@ select tst.ok(tst.err($$select public.start_session_v4(gen_random_uuid(), true, 
 
 -- Sesión A: entra por el QR de la encuesta con código (escrito con guion y minúsculas)
 select tst.ok((public.start_session_v4((select v from v4 where k='a'), true, 'mobile', false, 'encuesta', 'antes',
-               lower(substr(tst.code('K7Q4MXP'), 1, 4) || '-' || substr(tst.code('K7Q4MXP'), 5)))) ->> 'survey_code' = tst.code('K7Q4MXP'), 'código normalizado y guardado');
+               lower(substr(tst.code('K7Q4MXP'), 1, 4) || '-' || substr(tst.code('K7Q4MXP'), 5)))) ->> 'survey_code' is null, 'el código de encuesta no se guarda (instrumentos independientes)');
 create temp table pa as select public.get_session_v4((select v from v4 where k='a')) as p;
 reset role;
 grant select on pa to anon;
@@ -163,8 +163,7 @@ select tst.ok((select score from public.leaderboard_entries order by id desc lim
 -- Sesión B: entra por el QR del juego sin código y lo agrega después
 set role anon;
 select public.start_session_v4((select v from v4 where k='b'), true, 'desktop', null, 'qr_juego', 'despues');
-select tst.ok(tst.err($$select public.set_survey_code((select v from v4 where k='b'), 'ZZZZZZZZ')$$) like '%invalid_survey_code%', 'código inválido no se enlaza');
-select tst.ok((public.set_survey_code((select v from v4 where k='b'), tst.code('AB12CD3'))) ->> 'survey_code' = tst.code('AB12CD3'), 'código enlazado después de jugar');
+select tst.ok(tst.err($$select public.set_survey_code((select v from v4 where k='b'), 'ZZZZZZZZ')$$) like '%permission denied%', 'anon ya no puede enlazar un código de encuesta');
 select tst.ok(tst.err($$select public.find_sessions_by_code('x')$$) like '%permission denied%', 'anon no busca sesiones por código');
 -- La sesión vieja (3.x) termina con su versión; la 4.0.0 no acepta sus funciones
 select tst.ok(tst.err($$select public.get_session_v4((select v from v4 where k='old'))$$) like '%study_not_v4%', 'una sesión anterior no se abre como 4.0.0');
@@ -191,7 +190,7 @@ reset role;
 insert into public.admin_profiles (user_id, role) values ('00000000-0000-4000-8000-000000000004', 'analyst') on conflict (user_id) do update set role = 'analyst', active = true;
 set role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000004', false);
-select tst.ok((select count(*) from public.find_sessions_by_code(lower(tst.code('AB12CD3')))) = 1, 'analyst encuentra la sesión por código');
+select tst.ok((select count(*) from public.find_sessions_by_code(lower(tst.code('AB12CD3')))) = 0, 'no hay sesiones con código de encuesta');
 select tst.ok(tst.err($$select public.set_draft_survey((select id from public.studies where version = '4.0.0'), null, null)$$) like '%solo_borradores%', 'la encuesta de la versión activa no se cambia');
 select tst.ok(tst.err($$select public.save_news_sources((select id from public.news_bank limit 1), '[{"kind":"oficial","label":"Gobierno","excerpt":"corto","says":"confirma"}]')$$) like '%fuente_extracto_invalido%', 'se validan las fuentes');
 select tst.ok(tst.err($$select public.save_news_sources((select id from public.news_bank limit 1), '[{"kind":"oficial","label":"Gobierno","excerpt":"Un extracto suficientemente largo.","says":"confirma","url":"http://x"}]')$$) like '%fuente_url_invalida%', 'solo enlaces https');

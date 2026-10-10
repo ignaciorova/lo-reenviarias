@@ -53,8 +53,8 @@ select tst.ok(tst.err($$insert into public.game_decisions (session_id, news_item
 select tst.ok(tst.err($$select public.grant_admin('random@test.local','owner')$$) like '%permission denied%', 'anon no ejecuta grant_admin');
 select tst.ok(tst.err($$select public._compute_summary(gen_random_uuid())$$) like '%permission denied%', 'anon no ejecuta funciones internas');
 select tst.ok(tst.err($$select public.purge_sessions('test', 1)$$) like '%permission denied%', 'anon no ejecuta purge_sessions');
--- Tabla original: el HTML antiguo puede seguir insertando, pero no leer
-select tst.ok(tst.err($$insert into public.radiografia_respuestas (opinion, aciertos) values ('legacy insert', 3)$$) is null, 'anon aún puede insertar en tabla original (compatibilidad)');
+-- Tabla original: desde la auditoría del 10/10/2026 ya no admite inserciones anónimas
+select tst.ok(tst.err($$insert into public.radiografia_respuestas (opinion, aciertos) values ('legacy insert', 3)$$) like '%permission denied%', 'anon ya no inserta en la tabla original');
 
 -- ---------------------------------------------------------------------------
 -- 2. Flujo completo de un participante (rol anon)
