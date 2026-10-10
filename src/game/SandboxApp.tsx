@@ -175,7 +175,7 @@ export default function SandboxApp() {
           <p className="text-[#E6DCEF]">
             {stage === 'done'
               ? (withMedia ? 'Prueba la misma ronda sin imágenes para comparar. Fíjate si la imagen te hizo dudar menos o decidir más rápido.' : 'Así se ve la versión actual. Prueba con imágenes para comparar.')
-              : '4 noticias del juego (2 reales y 2 falsas) presentadas como llegarían por WhatsApp, Facebook o TikTok. Los textos, las pistas y el puntaje son los del juego actual; dos fotos están generadas con IA, el plenario es una foto de referencia y el clip no tiene sonido.'}
+              : 'Las 10 noticias del juego presentadas como llegarían por WhatsApp, Facebook o TikTok, con los mismos textos, pistas y puntaje. Los clips no tienen sonido.'}
           </p>
           <PrimaryButton onClick={() => start(true)}>{stage === 'done' && withMedia ? 'Repetir con imágenes' : 'Jugar con imágenes'}</PrimaryButton>
           <PrimaryButton alt onClick={() => start(false)}>Jugar sin imágenes (versión actual)</PrimaryButton>
