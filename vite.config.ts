@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Vercel marca las vistas previas de ramas con VERCEL_ENV=preview (ver src/game/GameApp.tsx)
+  define: { __IS_PREVIEW__: JSON.stringify(process.env.VERCEL_ENV === 'preview') },
   // Solo para pruebas locales: redirige /rest/v1 a un PostgREST local (ver docs/pruebas.md)
   server: process.env.LOCAL_POSTGREST ? { proxy: { '/rest/v1': { target: process.env.LOCAL_POSTGREST, rewrite: (p) => p.replace(/^\/rest\/v1/, '') } } } : undefined,
   build: { sourcemap: false, chunkSizeWarningLimit: 900 },

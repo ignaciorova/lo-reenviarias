@@ -3,11 +3,15 @@ import type { ItemT } from '../lib/api'
 import { MediaFrame, MediaSchema } from './MediaFrame'
 
 export type CardHandle = { fly: (dir: 1 | -1) => void }
-type Props = { item: ItemT; back?: boolean; hint?: string; disabled?: boolean; onSwipe?: (dir: 1 | -1) => void }
+type Props = {
+  item: Pick<ItemT, 'headline' | 'display'>; back?: boolean; hint?: string; disabled?: boolean; onSwipe?: (dir: 1 | -1) => void
+  /** Sellos al deslizar (4.0.0: «REENVIAR» / «NO»). */
+  labels?: { right: string; left: string }
+}
 
 const THRESHOLD = 90
 
-export const NewsCard = forwardRef<CardHandle, Props>(function NewsCard({ item, back, hint, disabled, onSwipe }, ref) {
+export const NewsCard = forwardRef<CardHandle, Props>(function NewsCard({ item, back, hint, disabled, onSwipe, labels = { right: 'REAL', left: 'FALSA' } }, ref) {
   const el = useRef<HTMLDivElement>(null)
   const lr = useRef<HTMLSpanElement>(null)
   const lf = useRef<HTMLSpanElement>(null)
@@ -76,8 +80,8 @@ export const NewsCard = forwardRef<CardHandle, Props>(function NewsCard({ item, 
       </div>
       {!back && (
         <>
-          <span ref={lr} aria-hidden className="pointer-events-none absolute top-5 left-4 z-10 -rotate-12 rounded-lg border-4 border-real bg-white/90 px-3 font-display text-3xl font-extrabold text-real opacity-0">REAL</span>
-          <span ref={lf} aria-hidden className="pointer-events-none absolute top-5 right-4 z-10 rotate-12 rounded-lg border-4 border-fake bg-white/90 px-3 font-display text-3xl font-extrabold text-fake opacity-0">FALSA</span>
+          <span ref={lr} aria-hidden className="pointer-events-none absolute top-5 left-4 z-10 -rotate-12 rounded-lg border-4 border-real bg-white/90 px-3 font-display text-3xl font-extrabold text-real opacity-0">{labels.right}</span>
+          <span ref={lf} aria-hidden className="pointer-events-none absolute top-5 right-4 z-10 rotate-12 rounded-lg border-4 border-fake bg-white/90 px-3 font-display text-3xl font-extrabold text-fake opacity-0">{labels.left}</span>
         </>
       )}
     </div>

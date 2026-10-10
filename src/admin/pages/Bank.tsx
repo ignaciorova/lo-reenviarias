@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { useData } from '../data'
 import { Empty, Section } from '../components'
 import { CardEditor } from '../CardEditor'
+import { SourcesEditor } from '../SourcesEditor'
 import { emptyCard, friendlyError, loadBank, loadVersionItems, type BankCard, type CardDraft, type VersionItem } from '../cards'
 import { Thumb } from '../Thumb'
 
@@ -14,6 +15,7 @@ export default function Bank() {
   const [error, setError] = useState<string | null>(null)
   const [msg, setMsg] = useState<string | null>(null)
   const [editing, setEditing] = useState<CardDraft | null>(null)
+  const [sources, setSources] = useState<BankCard | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [q, setQ] = useState('')
 
@@ -34,6 +36,9 @@ export default function Bank() {
     .filter((c) => c.archived === showArchived)
     .filter((c) => !q.trim() || `${c.headline} ${c.item_key} ${c.category}`.toLowerCase().includes(q.trim().toLowerCase())), [cards, showArchived, q])
 
+  if (sources) {
+    return <SourcesEditor key={sources.id} card={sources} canEdit={canEdit} onCancel={() => setSources(null)} onDone={(m) => { setSources(null); setMsg(m); void load() }} />
+  }
   if (editing) {
     return (
       <CardEditor key={editing.id ?? 'nueva'} initial={editing} takenKeys={new Set(cards?.map((c) => c.item_key))} categories={categories} canEdit={canEdit}
@@ -80,11 +85,13 @@ export default function Bank() {
                         <span className={`rounded-full px-2 py-0.5 font-bold text-white ${c.is_real ? 'bg-real' : 'bg-fake'}`}>{c.is_real ? 'Real' : 'Falsa'}</span>
                         <span>{c.category}</span>·<span className="font-mono">{c.item_key}</span>
                         {a && <span className="rounded-full bg-lav px-2 py-0.5 text-ink">En juego ({active?.version})</span>}
+                        <span className={`rounded-full px-2 py-0.5 ${c.consult_sources?.length === 3 ? 'bg-lav text-ink' : 'bg-[#FFF6D6] text-ink'}`}>{c.consult_sources?.length === 3 ? '3 fuentes (4.x)' : 'Sin fuentes para la 4.x'}</span>
                         {changed && <span className="rounded-full bg-[#FFF6D6] px-2 py-0.5 text-ink">Editada después: el cambio entra en la próxima versión</span>}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1 text-sm sm:flex-row sm:gap-3">
                       <button onClick={() => { setMsg(null); setEditing(c) }} className="font-bold text-u underline underline-offset-4">{canEdit ? 'Editar' : 'Ver'}</button>
+                      <button onClick={() => { setMsg(null); setSources(c) }} className="text-u underline underline-offset-4">Fuentes</button>
                       {canEdit && !c.archived && <button onClick={() => { setMsg(null); setEditing({ ...c, id: undefined, item_key: '' }) }} className="text-u underline underline-offset-4">Duplicar</button>}
                       {canEdit && <button onClick={() => void archive(c, !c.archived)} className="text-muted underline underline-offset-4">{c.archived ? 'Restaurar' : 'Archivar'}</button>}
                     </div>

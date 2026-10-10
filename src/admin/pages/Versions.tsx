@@ -37,11 +37,7 @@ export default function Versions() {
 
   const studies = useMemo(() => [...(data?.studies ?? [])].sort(byVersion), [data])
   const active = studies.find((s) => s.status === 'active')
-  const sessionsBy = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const s of data?.sessions ?? []) if (!s.is_test) m.set(s.instrument_version, (m.get(s.instrument_version) ?? 0) + 1)
-    return m
-  }, [data])
+  const sessionsBy = useMemo(() => new Map(Object.entries(data?.sessionCounts ?? {})), [data])
 
   const refresh = async () => { await Promise.all([reload(), load()]) }
 

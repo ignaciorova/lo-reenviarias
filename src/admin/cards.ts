@@ -12,9 +12,13 @@ export type BankCard = {
   id: string; item_key: string; revision: number; headline: string; body_text: string | null; is_real: boolean; category: string
   source_name: string | null; source_url: string | null; source_published_on: string | null; explanation: string; hint: string
   red_flags: string[]; display: CardDisplay; validation_status: string; validation_notes: string | null; archived: boolean
-  updated_at: string
+  updated_at: string; consult_sources?: ConsultSource[] | null
 }
-export type CardDraft = Omit<BankCard, 'id' | 'revision' | 'archived' | 'updated_at'> & { id?: string }
+export type ConsultSource = {
+  kind: 'oficial' | 'medio' | 'comentarios'; label: string; excerpt: string; says: 'confirma' | 'desmiente' | 'nada_claro'
+  url?: string; published?: string; simulated?: boolean; comments?: { who: string; text: string }[]
+}
+export type CardDraft = Omit<BankCard, 'id' | 'revision' | 'archived' | 'updated_at' | 'consult_sources'> & { id?: string }
 
 export type VersionItem = { id: string; study_id: string; item_key: string; item_version: number; bank_id: string | null; headline: string; is_real: boolean; display: CardDisplay }
 
@@ -72,6 +76,14 @@ export function friendlyError(message: string): string {
     ['item_key', 'La clave interna solo admite minúsculas, números y guion bajo.'],
     ['source_url', 'El enlace de la fuente debe empezar con https://'],
     ['la_1_0_0_es_historica', 'La 1.0.0 es el registro histórico y no se puede activar.'],
+    ['faltan_fuentes', 'En la 4.x cada noticia elegida necesita sus tres fuentes (oficial, medio y comentarios). Agrégalas en el banco.'],
+    ['fuente_nombre_invalido', 'El nombre de cada fuente debe tener entre 2 y 80 caracteres.'],
+    ['fuente_extracto_invalido', 'El texto de cada fuente debe tener entre 10 y 600 caracteres.'],
+    ['fuente_lectura_invalida', 'Indica qué dice cada fuente: la confirma, la desmiente o no dice nada claro.'],
+    ['fuente_url_invalida', 'El enlace de la fuente debe empezar con https://'],
+    ['fuente_comentarios_invalidos', 'Hasta 4 comentarios por fuente.'],
+    ['fuente', 'Revisa las fuentes: una de ellas no es válida.'],
+    ['solo_borradores', 'Solo se puede cambiar en un borrador. La versión en juego no se edita.'],
   ]
   return map.find(([k]) => message.includes(k))?.[1] ?? 'No se pudo guardar. Revisa los campos e inténtalo otra vez.'
 }
@@ -89,7 +101,9 @@ export async function loadVersionItems(): Promise<VersionItem[]> {
 }
 
 export async function saveCard(card: CardDraft): Promise<{ id: string; revision: number }> {
-  const { data, error } = await supabase().rpc('save_news_card', { p_card: card })
+  // Las fuentes de la 4.x se guardan aparte (save_news_sources)
+  const { consult_sources: _omit, ...p_card } = card as CardDraft & { consult_sources?: unknown }
+  const { data, error } = await supabase().rpc('save_news_card', { p_card })
   if (error) throw new Error(friendlyError(error.message))
   return data as { id: string; revision: number }
 }
