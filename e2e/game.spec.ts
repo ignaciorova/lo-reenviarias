@@ -50,6 +50,23 @@ test.describe('Aplicación pública', () => {
     }
   })
 
+  test('respuesta abierta muy corta: dice por qué no se puede avanzar', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Acepto y quiero jugar' }).click()
+    const toGame = page.getByRole('button', { name: 'Empezar el juego' })
+    await expect(page.getByText('Te faltan 4 preguntas para continuar.')).toBeVisible()
+    await page.getByRole('radio', { name: 'A veces' }).click()
+    await page.getByRole('radio', { name: 'No estoy seguro/a' }).click()
+    await page.getByRole('radio', { name: 'Todos por igual' }).click()
+    await page.getByLabel(/noticia impactante/).fill('no')
+    await expect(toGame).toBeDisabled()
+    await expect(page.getByText('Te falta 1 pregunta para continuar.')).toBeVisible()
+    await expect(page.getByText('Escribe al menos 3 caracteres.')).toHaveClass(/text-fake/)
+    await page.getByLabel(/noticia impactante/).fill('no la comparto')
+    await expect(toGame).toBeEnabled()
+    await expect(page.getByText('Escribe al menos 3 caracteres.')).not.toHaveClass(/text-fake/)
+  })
+
   test('recarga a mitad de partida: se reanuda en la misma noticia sin duplicar', async ({ page }) => {
     const sid = await startAndAnswerOpinion(page)
     await decideCurrent(page, 'real', 1)
