@@ -16,8 +16,25 @@ test('sandbox de noticias ilustradas: ronda completa sin llamadas al servidor', 
     await page.getByRole('button', { name: i < 9 ? 'Siguiente noticia' : 'Terminar' }).click()
   }
   await expect(page.getByText('Con imágenes: 10 de 10 correctas')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /No caíste/ })).toBeVisible()
   await page.getByRole('button', { name: 'Jugar sin imágenes (versión actual)' }).click()
   await expect(page.getByRole("img", { name: /bus blanco y verde/ })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: /pasaje de una ruta de bus/ })).toBeVisible()
   expect(external).toEqual([])
+})
+
+test('repaso final: muestra los trucos en los que cayó y dónde estaban', async ({ page }) => {
+  await page.goto('/sandbox')
+  await page.getByRole('button', { name: 'Jugar sin imágenes (versión actual)' }).click()
+  // Responde todo al revés: cae en las 5 falsas y rechaza las 5 reales
+  for (let i = 0; i < 10; i++) {
+    await page.getByRole('button', { name: i % 2 === 0 ? /Falsa/ : /Real/ }).click()
+    await page.getByRole('button', { name: i < 9 ? 'Siguiente noticia' : 'Terminar' }).click()
+  }
+  await expect(page.getByRole('heading', { name: 'Los trucos que te funcionaron' })).toBeVisible()
+  await expect(page.getByText('La prisa')).toBeVisible()
+  await expect(page.getByText('Te funcionó 3 veces')).toBeVisible()
+  await page.getByText('La prisa').click()
+  await expect(page.locator('details[open] mark').first()).toBeVisible()
+  await expect(page.getByText('Cómo pillarlo en 10 segundos.').first()).toBeVisible()
 })

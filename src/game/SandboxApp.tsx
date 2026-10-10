@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FeedbackT, ItemT, SessionPayloadT } from '../lib/api'
 import { GameBoard, type BoardClient } from './GameBoard'
 import type { Media } from './MediaFrame'
+import { Repaso } from './Repaso'
+import type { Resultado } from './trucos'
 import { Logo, PrimaryButton } from './ui'
 
 /*
@@ -105,12 +107,17 @@ function payloadFor(withMedia: boolean): SessionPayloadT {
 }
 
 /** Misma regla de puntaje que el servidor (participant_api: submit_decision), calculada en el navegador. */
-function localClient(): BoardClient & { reset: () => void; result: () => { total: number; correct: number } } {
+function localClient(): BoardClient & { reset: () => void; result: () => { total: number; correct: number }; resultados: () => Resultado[] } {
   let total = 0, streak = 0, hints = HINTS, correctCount = 0
+  const outcomes = new Map<number, boolean>()
   const used = new Set<number>()
   return {
-    reset() { total = 0; streak = 0; hints = HINTS; correctCount = 0; used.clear() },
+    reset() { total = 0; streak = 0; hints = HINTS; correctCount = 0; used.clear(); outcomes.clear() },
     result: () => ({ total, correct: correctCount }),
+    resultados: () => [...outcomes.entries()].map(([position, correct]) => {
+      const d = DEMO[position - 1]
+      return { key: d.key, headline: d.headline, isReal: d.isReal, correct, thumb: d.media.poster ?? d.media.src }
+    }),
     async useHint(_sid, position) {
       const dup = used.has(position)
       if (!dup) { used.add(position); hints -= 1 }
@@ -130,6 +137,7 @@ function localClient(): BoardClient & { reset: () => void; result: () => { total
       }
       total += points
       if (correct) correctCount += 1
+      outcomes.set(position, correct)
       const fb: FeedbackT = {
         position, item_id: uuid(position - 1), choice, timed_out: timedOut, is_correct: correct, is_real: d.isReal, hint_used: used.has(position),
         points_awarded: points, streak, total_score: total,
@@ -172,10 +180,11 @@ export default function SandboxApp() {
               {withMedia ? 'Con imágenes' : 'Sin imágenes'}: {client.result().correct} de {DEMO.length} correctas · {client.result().total} puntos
             </p>
           )}
+          {stage === 'done' && <Repaso resultados={client.resultados()} />}
           <p className="text-[#E6DCEF]">
             {stage === 'done'
               ? (withMedia ? 'Prueba la misma ronda sin imágenes para comparar. Fíjate si la imagen te hizo dudar menos o decidir más rápido.' : 'Así se ve la versión actual. Prueba con imágenes para comparar.')
-              : '4 noticias del juego (2 reales y 2 falsas) presentadas como llegarían por WhatsApp, Facebook o TikTok. Los textos, las pistas y el puntaje son los del juego actual; dos fotos están generadas con IA, el plenario es una foto de referencia y el clip no tiene sonido.'}
+              : 'Las 10 noticias del juego presentadas como llegarían por WhatsApp, Facebook o TikTok, con los mismos textos, pistas y puntaje. Al final, un repaso de los trucos en los que caíste (prototipo).'}
           </p>
           <PrimaryButton onClick={() => start(true)}>{stage === 'done' && withMedia ? 'Repetir con imágenes' : 'Jugar con imágenes'}</PrimaryButton>
           <PrimaryButton alt onClick={() => start(false)}>Jugar sin imágenes (versión actual)</PrimaryButton>
