@@ -40,6 +40,13 @@ export const SessionPayload = z.object({
 })
 export const HintResult = z.object({ position: z.number(), hint: z.string(), hints_remaining: z.number(), duplicate: z.boolean() })
 
+const LbRow = z.object({ rank: z.number(), alias: z.string(), score: z.number(), correct: z.number() })
+export const LeaderboardStatus = z.object({
+  enabled: z.boolean(), joined: z.boolean().optional(), can_join: z.boolean().optional(), top: z.array(LbRow).optional(),
+})
+export const LeaderboardJoin = z.object({ alias: z.string(), rank: z.number(), top: z.array(LbRow) })
+export type LbRowT = z.infer<typeof LbRow>
+
 export type ItemT = z.infer<typeof Item>
 export type QuestionT = z.infer<typeof Question>
 export type FeedbackT = z.infer<typeof Feedback>
@@ -119,6 +126,9 @@ export const api = {
   submitDecision: (sessionId: string, position: number, choice: 'real' | 'falsa' | null, responseMs: number, o: Opt = {}) =>
     rpc('submit_decision', { p_session_id: sessionId, p_position: position, p_choice: choice, p_response_ms: Math.max(0, Math.round(responseMs)) }, Feedback, o),
   completeSession: (sessionId: string, o: Opt = {}) => rpc('complete_session', { p_session_id: sessionId }, Summary, o),
+  leaderboardStatus: (sessionId: string) => rpc('leaderboard_status', { p_session_id: sessionId }, LeaderboardStatus, { retries: 1 }),
+  joinLeaderboard: (sessionId: string, animal: number, adj: number, num: number) =>
+    rpc('join_leaderboard', { p_session_id: sessionId, p_animal: animal, p_adj: adj, p_num: num }, LeaderboardJoin, { retries: 2 }),
   publicStats: () => rpc('public_stats', { p_study_code: STUDY_CODE }, z.object({ n: z.number().nullable(), mean_correct: z.number().optional() }), { retries: 0 }),
 }
 

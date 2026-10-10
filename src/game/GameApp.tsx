@@ -90,7 +90,7 @@ export default function GameApp() {
         <SurveyScreen key="post" questions={payload.questions.filter((q) => q.phase === 'post')} level="Última pregunta"
           title="Después de jugar…" cta="Ver mi resultado" busy={busy} error={error} onSubmit={(a) => sendSurvey('post', a)} />
       )}
-      {stage === 'final' && summary && <FinalScreen summary={summary} reducedMotion={reduced} onNewPerson={resetForNextPerson} />}
+      {stage === 'final' && summary && <FinalScreen summary={summary} sessionId={payload?.session_id} reducedMotion={reduced} onNewPerson={resetForNextPerson} />}
     </div>
   )
 }
