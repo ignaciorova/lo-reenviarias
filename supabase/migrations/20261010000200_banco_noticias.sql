@@ -8,7 +8,7 @@
 -- · Las imágenes y clips subidos van al bucket público «noticias» de Supabase Storage; solo
 --   analyst u owner pueden subir. Los archivos no se sobrescriben: cada subida tiene nombre nuevo.
 -- · Crear borradores: analyst u owner. Activar (o volver a una versión cerrada): solo owner.
--- Sin DELETE ni DROP: un borrador que no sirve se archiva.
+-- No se borra nada: un borrador que no sirve se archiva.
 -- ============================================================================
 
 create table if not exists public.news_bank (
@@ -37,7 +37,7 @@ create table if not exists public.news_bank (
 );
 comment on table public.news_bank is 'Banco de tarjetas editables. Las versiones del instrumento copian de aquí; editar el banco no altera versiones existentes.';
 
-alter table public.news_items add column if not exists bank_id uuid references public.news_bank(id) on delete restrict;
+alter table public.news_items add column if not exists bank_id uuid references public.news_bank(id);
 comment on column public.news_items.bank_id is 'Tarjeta del banco de la que se copió (item_version = revisión copiada). Nulo en versiones anteriores al banco.';
 
 alter table public.news_bank enable row level security;

@@ -48,3 +48,12 @@ El panel `/admin` tiene dos pantallas para cambiar el contenido del juego sin to
 - `bash scripts/db-test.sh` corre las pruebas SQL; `supabase/tests/20_banco_noticias_tests.sql` tiene 39 aserciones.
 - `e2e/banco.spec.ts` prueba el flujo completo en el navegador: crear con imagen, editar, armar, activar y volver atrás, y comprueba que viewer no puede editar.
 - La base local no tiene Storage, así que en esa prueba la subida se simula. La política del bucket solo existe en Supabase.
+
+## Registro en producción
+
+- 2026-10-10 02:57 UTC: migración aplicada en Supabase (`fieatocekvklctfkxgpa`) con autorización de Gerardo. Verificado:
+  - el banco tiene 10 noticias, las 10 con medio;
+  - el bucket `noticias` es público, con límite de 10 MB y los tipos jpeg, png, webp y mp4;
+  - existen las políticas `noticias_admin_upload` y `noticias_admin_read`;
+  - anon no puede leer el banco ni guardar noticias;
+  - la 3.0.0 sigue activa: un `start_session` revertido devolvió 3.0.0 con 10 noticias, todas con medio.
