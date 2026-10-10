@@ -7,8 +7,9 @@ import { Logo, PrimaryButton } from './ui'
 /*
  * SANDBOX de la versión 3.0.0 (noticias ilustradas). Solo existe en la rama claude/sandbox-noticias-ilustradas.
  * Todo ocurre en el navegador: no llama a Supabase y no guarda ninguna respuesta.
- * Textos, pistas y explicaciones copiados sin cambios del instrumento 2.0.0. Medios en public/sandbox/: bus y embajada generados
- * con IA (Canva), plenario aportado por el equipo (licencia por confirmar), «comunicado» de SINPE dibujado en SVG.
+ * Textos, pistas y explicaciones copiados sin cambios del instrumento 2.0.0. Medios en public/sandbox/: imágenes generadas
+ * con IA (Canva) con logos de marcas e instituciones difuminados, plenario aportado por el equipo (licencia por confirmar),
+ * «comunicado» de SINPE dibujado en SVG.
  */
 type Demo = { key: string; headline: string; isReal: boolean; display: ItemT['display']; media: Media; explanation: string; hint: string; redFlags: string[]; source: string | null }
 
@@ -42,6 +43,51 @@ const DEMO: Demo[] = [
     media: { kind: 'image', src: '/sandbox/plenario.jpg', alt: 'Foto del plenario vacío de la Asamblea Legislativa de Costa Rica', frame: 'facebook', credit: 'Foto de referencia · fuente por confirmar' },
     explanation: 'Es inventada para este juego.', hint: 'Abolir el ejército está en la Constitución; cambiarlo sería un hecho histórico con cobertura mundial.',
     redFlags: ['Mayúsculas y "URGENTE" para generar alarma.', 'Sería una reforma constitucional: imposible que pase en silencio.', 'No hay votación registrada ni medio que lo publique.'], source: null,
+  },
+  {
+    key: 'r_arancel', isReal: true,
+    headline: 'EE.UU. impone un arancel de 12,5% a Costa Rica por presunto trabajo forzoso en la cadena de suministro',
+    display: { who: 'Tío Fernando', many: true, band: 'URGENTE', bg: 'linear-gradient(135deg,#1F3B73,#B22234)', emo: '📦', emo2: '⛓️' },
+    media: { kind: 'image', src: '/sandbox/puerto.jpg', alt: 'Foto: patio de contenedores de un puerto caribeño bajo la lluvia, con grúas azules y un barco cargado', frame: 'facebook', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es real. Ocurrió el 24 de julio de 2026.', hint: 'La reportaron agencias internacionales y medios nacionales en julio de 2026.', redFlags: [], source: 'AP / medios internacionales',
+  },
+  {
+    key: 'f_marihuana', isReal: false,
+    headline: 'Desde noviembre será legal comprar marihuana recreativa en farmacias de Costa Rica',
+    display: { who: 'Grupo U 🎓', many: false, band: 'NACIONAL', bg: 'linear-gradient(135deg,#2F7D32,#A5D6A7)', emo: '🌿', emo2: '💊' },
+    media: { kind: 'image', src: '/sandbox/farmacia.jpg', alt: 'Foto: mostrador de una farmacia con estantes llenos de frascos y cajas de medicamentos', frame: 'whatsapp', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es inventada para este juego.', hint: 'Ningún medio la reporta y un cambio de ley así pasaría por la Asamblea con mucha cobertura.',
+    redFlags: ['No dice quién lo anunció ni cita ninguna ley.', 'Un cambio de ley así sería noticia en todos los medios.', 'Toca un tema polémico para que reacciones rápido.'], source: null,
+  },
+  {
+    key: 'r_hermano', isReal: true,
+    headline: 'Hermano de un ministro obtuvo una mejora salarial de ₡2 millones gracias a un puesto en el Gobierno',
+    display: { who: 'Don Rigo', many: true, band: 'ESCÁNDALO', bg: 'linear-gradient(135deg,#3E2723,#8D6E63)', emo: '💰', emo2: '🏛️' },
+    media: { kind: 'image', src: '/sandbox/oficina.jpg', alt: 'Foto: escritorio de una oficina pública con expedientes, un sello y la bandera de Costa Rica al fondo', frame: 'whatsapp', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es real. CR Hoy lo publicó en octubre de 2026.', hint: 'Lo publicó CR Hoy a inicios de octubre de 2026.', redFlags: [], source: 'CR Hoy',
+  },
+  {
+    key: 'f_ccss', isReal: false,
+    headline: 'La CCSS dejará de atender emergencias a personas que no tengan el seguro al día desde enero. ¡Pásalo!',
+    display: { who: 'Mamá', many: false, band: 'SALUD', bg: 'linear-gradient(135deg,#0277BD,#81D4FA)', emo: '🏥', emo2: '⛔' },
+    media: { kind: 'video', src: '/sandbox/emergencias.mp4', webm: '/sandbox/emergencias.webm', poster: '/sandbox/emergencias-poster.jpg', alt: 'Clip corto sin sonido: entrada de una sala de emergencias de noche, con una ambulancia estacionada bajo la lluvia', frame: 'tiktok', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es inventada para este juego.', hint: 'No hay comunicado de la CCSS y la atención de emergencias está garantizada por ley.',
+    redFlags: ['Pide "pásalo": las instituciones no comunican así.', 'Genera miedo sobre un tema de salud.', 'No hay comunicado oficial.'], source: null,
+  },
+  {
+    key: 'r_recorte', isReal: true,
+    headline: 'Gremios rechazan recorte de ₡19 mil millones a educación: alertan que afectaría becas y comedores escolares',
+    display: { who: 'Profe Andrea', many: false, band: 'PRESUPUESTO', bg: 'linear-gradient(135deg,#4A148C,#9575CD)', emo: '✂️', emo2: '🍽️' },
+    media: { kind: 'image', src: '/sandbox/comedor.jpg', alt: 'Foto: comedor escolar con una cocinera sirviendo arroz, frijoles y verduras en bandejas', frame: 'facebook', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es real. Diario Extra lo publicó el 4 de septiembre de 2026.', hint: 'Lo publicó Diario Extra el 4 de septiembre de 2026.', redFlags: [], source: 'Diario Extra',
+  },
+  {
+    key: 'f_ingles', isReal: false,
+    headline: 'Por el recorte de presupuesto, el MEP eliminará las clases de inglés en primaria a partir de 2027',
+    display: { who: 'Profe Andrea', many: true, band: 'EDUCACIÓN', bg: 'linear-gradient(135deg,#F2994A,#F2C94C)', emo: '📚', emo2: '🚫' },
+    media: { kind: 'image', src: '/sandbox/aula.jpg', alt: 'Foto: aula de escuela vacía con pupitres de madera y una pizarra con una lección de inglés', frame: 'facebook', credit: 'Imagen generada con IA · juego académico' },
+    explanation: 'Es inventada para este juego, pero se monta sobre una noticia real: el recorte al presupuesto de educación.', hint: 'El recorte sí es real, pero no hay ningún anuncio sobre eliminar el inglés.',
+    redFlags: ['Mezcla un hecho real con uno falso: es la técnica más efectiva.', 'No cita comunicado del MEP.', 'Busca indignación.'], source: null,
   },
 ]
 

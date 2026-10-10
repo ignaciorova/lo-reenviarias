@@ -29,3 +29,14 @@ La página `/sandbox` muestra 4 noticias del juego (2 reales y 2 falsas) con ima
 2. Medios para las 10 noticias: propios, con licencia libre o generados. No descargar ni incrustar videos de YouTube (términos de servicio, derechos de autor, rastreo y política de seguridad del sitio).
 3. Guardar `media` dentro de `news_items.display` de la nueva versión (no requiere cambiar el esquema).
 4. Texto alternativo de cada imagen revisado, para lectores de pantalla.
+
+
+## Actualización 2026-10-10: las 10 noticias con imagen
+
+Gerardo aportó 6 imágenes generadas con IA en Canva (puerto, farmacia, oficina pública, emergencias, comedor escolar y aula). Se procesaron así:
+
+- Se recortó la franja inferior para quitar el sello «SIMULACIÓN EDUCATIVA» incrustado, porque la tarjeta ya muestra su propia etiqueta de IA y las demás imágenes no lo tenían.
+- Se difuminaron el logo de la CCSS (emergencias) y los nombres de navieras y de la terminal (puerto). La oficina conserva el escudo nacional y el comedor muestra a una cocinera de espaldas y con mascarilla.
+- La de emergencias (noticia falsa) es además un clip de 5 s sin sonido, para equilibrar con el clip de la embajada (noticia real).
+
+Pendiente antes de producción: la noticia falsa de SINPE sigue con un gráfico propio y no con foto; el plenario sigue con fuente por confirmar.
