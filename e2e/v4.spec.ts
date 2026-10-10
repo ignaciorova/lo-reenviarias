@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 import { hasDb, sql, sqlExec } from './helpers'
 
 // Flujo 4.0.0 contra un entorno local con la 4.0.0 activa (E2E_V4=1, E2E_LOCAL_DB=lr_e2e4).
@@ -113,5 +114,34 @@ test('recarga a mitad de una verificación: retoma en las fuentes y no pierde la
   const r = sql<{ state: string; sources_opened: string[] }>(`select state, sources_opened from public.share_decisions where session_id = '${sid}'`)[0]
   expect(r.state).toBe('E5')
   expect(r.sources_opened).toEqual(['medio'])
+  sqlExec(`update public.participant_sessions set is_test = true where id = '${sid}'`)
+})
+
+test('partida guiada por un script: termina igual, pero no entra al ranking (mensaje neutro)', async ({ page, request }, info) => {
+  test.skip(info.project.name !== 'movil', 'una sola vez')
+  const anon = readFileSync(`${process.env.E2E_TOKEN_DIR}/anon.jwt`, 'utf8').trim()
+  const rpc = async (fn: string, body: Record<string, unknown>) => {
+    const r = await request.post(`/rest/v1/rpc/${fn}`, { data: body, headers: { apikey: anon, Authorization: `Bearer ${anon}` } })
+    expect(r.ok(), `${fn}: ${await r.text()}`).toBeTruthy()
+    return r.json()
+  }
+  // 10 tarjetas en milisegundos por la API pública, sin pasar por la interfaz
+  const sid = crypto.randomUUID()
+  const p = await rpc('start_session_v4', { p_session_id: sid, p_consent: true, p_device_class: 'mobile', p_reduced_motion: false, p_entry_origin: 'enlace',
+    p_survey_intent: null, p_survey_code: null, p_study_code: 'lo-reenviarias', p_device_replay: false })
+  await rpc('submit_survey', { p_session_id: sid, p_phase: 'pre', p_answers: { primera_vez: 'Sí, es la primera vez' } })
+  for (const it of p.items as { position: number }[]) await rpc('submit_card', { p_session_id: sid, p_position: it.position, p_card: { first_action: 'reenviar', first_action_ms: 3000, belief: 'si' } })
+  const summary = await rpc('complete_session_v4', { p_session_id: sid })
+  expect(summary.score).toBeGreaterThan(0)
+
+  await page.goto('/')
+  await page.evaluate((id) => localStorage.setItem('lr_session_v4', id), sid)
+  await page.reload()
+  await expect(page.getByText('adivinaste si eran reales')).toBeVisible()
+  await expect(page.getByText(String(summary.score), { exact: true })).toBeVisible()
+  const board = page.getByRole('region', { name: '🏆 Ranking' })
+  await expect(board.getByText('Esta partida no entra en el ranking.')).toBeVisible()
+  await expect(board.getByRole('button', { name: 'Entrar al ranking (opcional)' })).toHaveCount(0)
+  await expect(board).not.toContainText(/automat|bot|script|sospech/i)
   sqlExec(`update public.participant_sessions set is_test = true where id = '${sid}'`)
 })

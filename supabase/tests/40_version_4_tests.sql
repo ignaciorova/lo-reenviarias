@@ -142,6 +142,13 @@ set role anon;
 select tst.ok(tst.err($$select public.complete_session_v4((select v from v4 where k='a'))$$) like '%game_not_finished%', 'no se cierra con tarjetas pendientes');
 -- 10: con «¿Por qué?» si toca
 select public.submit_card((select v from v4 where k='a'), 10, jsonb_build_object('first_action','no_reenviar','first_action_ms',3000,'belief','no_se','reason','sin_fuente'));
+reset role;
+-- La prueba envía las 10 tarjetas en milisegundos; desde 20261011000400 eso es una señal de actividad
+-- automatizada. Se simula el ritmo de una persona (horas del servidor) antes de cerrar la partida.
+update public.participant_sessions set game_started_at = now() - interval '6 minutes' where id = (select v from v4 where k='a');
+update public.share_decisions set created_at = now() - interval '6 minutes' + (position * 25 + (position % 3) * 7) * interval '1 second'
+ where session_id = (select v from v4 where k='a');
+set role anon;
 create temp table sa as select public.complete_session_v4((select v from v4 where k='a')) as s;
 reset role;
 grant select on sa to anon;

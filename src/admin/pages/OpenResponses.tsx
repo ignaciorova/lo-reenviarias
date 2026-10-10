@@ -3,6 +3,8 @@ import { useData } from '../data'
 import { useFiltered, Section, Empty } from '../components'
 import { supabase } from '../../lib/supabase'
 import { download, toCSV } from '../../analytics/export'
+import type { OpenResponseRow } from '../../analytics/types'
+import { canExport, exportDataset } from '../exportDataset'
 
 export default function OpenResponses() {
   const { data, reload, profile } = useData()
@@ -32,10 +34,23 @@ export default function OpenResponses() {
     const { error } = await supabase().rpc('remove_response_code', { p_response_id: id, p_code: c })
     if (error) setErr('No se pudo quitar el código.'); else void reload()
   }
-  const exportCsv = () => {
-    const t = { name: 'abiertas', columns: ['response_id', 'session_id', 'instrument_version', 'pregunta', 'texto', 'codigos', 'fecha'], rows: rows.map((r) => [r.response_id, r.session_id, r.instrument_version, r.question_key, r.text_value, r.codes.join(' | '), r.created_at]) }
-    download(`lo-reenviarias_abiertas_${new Date().toISOString().slice(0, 10)}.csv`, toCSV(t), 'text/csv;charset=utf-8')
-    void supabase().rpc('log_export', { p_details: { dataset: 'abiertas', rows: rows.length } }).then(() => undefined)
+  // Las filas las entrega el servidor (export_dataset), que deja la descarga en la auditoría.
+  const exportCsv = async () => {
+    setErr(null)
+    try {
+      const got = await exportDataset<OpenResponseRow>('abiertas', { rowIds: rows.map((r) => r.response_id), descripcion: q.trim() ? `búsqueda «${q.trim()}»` : 'respuestas visibles', formato: 'csv' })
+      const t = { name: 'abiertas', columns: ['response_id', 'session_id', 'instrument_version', 'pregunta', 'texto', 'codigos', 'fecha'], rows: got.map((r) => [r.response_id, r.session_id, r.instrument_version, r.question_key, r.text_value, r.codes.join(' | '), r.created_at]) }
+      download(`lo-reenviarias_abiertas_${new Date().toISOString().slice(0, 10)}.csv`, toCSV(t), 'text/csv;charset=utf-8')
+    } catch (e) { setErr(e instanceof Error ? e.message : 'No se pudo exportar.') }
+  }
+
+  if (profile.role === 'viewer') {
+    return (
+      <div>
+        <h1 className="mb-3 font-display text-2xl font-bold">Preguntas abiertas</h1>
+        <p role="note" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Las respuestas escritas por participantes pueden contener datos personales, así que solo las ven los roles analyst y owner. Tu rol (viewer) sigue viendo los indicadores y las respuestas de opción.</p>
+      </div>
+    )
   }
 
   const counts = allCodes.map((c) => [c, rows.filter((r) => r.codes.includes(c)).length] as const)
@@ -53,7 +68,7 @@ export default function OpenResponses() {
         <div className="flex flex-wrap items-center gap-2">
           <input className="inp w-56" placeholder="Buscar palabras…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" />
           <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={onlyUncoded} onChange={(e) => setOnlyUncoded(e.target.checked)} /> Solo sin codificar</label>
-          <button onClick={exportCsv} className="rounded-md bg-u px-3 py-1.5 text-sm font-bold text-white">Exportar CSV</button>
+          {canExport(profile) && <button onClick={() => void exportCsv()} className="rounded-md bg-u px-3 py-1.5 text-sm font-bold text-white">Exportar CSV</button>}
         </div>
       }>
         {err && <p role="alert" className="mb-2 text-sm text-red-700">{err}</p>}

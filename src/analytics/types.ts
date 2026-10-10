@@ -31,6 +31,10 @@ export type SessionRow = {
   real_total: number | null
   real_rejected_count: number | null
   simulated_reach_total: number | null
+  /** Señales de actividad automatizada (servidor). Opcionales: bases sin la migración 20261011000400 no las tienen. */
+  automation_signals?: string[]
+  automation_review?: string | null
+  automation_flagged?: boolean
 }
 
 export type DecisionRow = {

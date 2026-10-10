@@ -44,11 +44,14 @@ describe('indicadores 4.0.0', () => {
       sess('inc', { e1: 2, status: 'started', cards_done: 2 }),
       sess('exc', { e1: 5, e3: 5, exclusion_reason: 'falla técnica' }),
       sess('to', { e7: 10 }),
+      sess('bot', { e1: 10, automation_signals: ['decisiones_rapidas'], automation_flagged: true }),
+      sess('rafaga', { e1: 5, e3: 5, automation_signals: ['rafaga'], automation_flagged: false }),
+      sess('revisada', { e1: 5, e3: 5, automation_signals: ['partida_rapida'], automation_review: 'humana', automation_flagged: false }),
     ]
     const { included, flow } = analysisSample(rows, { firstOnly: true, includeTest: false })
-    expect(included.map((s) => s.session_id)).toEqual(['ok'])
-    expect(flow).toEqual({ total: 7, test: 1, incomplete: 1, excluded: 1, replay: 2, allTimeout: 1, included: 1 })
-    expect(analysisSample(rows, { firstOnly: false, includeTest: false }).included).toHaveLength(3)
+    expect(included.map((s) => s.session_id)).toEqual(['ok', 'rafaga', 'revisada'])
+    expect(flow).toEqual({ total: 10, test: 1, incomplete: 1, excluded: 1, automated: 1, replay: 2, allTimeout: 1, included: 3 })
+    expect(analysisSample(rows, { firstOnly: false, includeTest: false }).included).toHaveLength(5)
   })
   it('promedio entre sesiones (cada persona pesa igual) con IC', () => {
     const rows = [sess('a', { e1: 10 }), sess('b', { e3: 10 }), sess('c', { e1: 5, e3: 5 }), sess('d', { e1: 1, e3: 9 })]

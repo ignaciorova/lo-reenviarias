@@ -42,9 +42,10 @@ export const HintResult = z.object({ position: z.number(), hint: z.string(), hin
 
 const LbRow = z.object({ rank: z.number(), alias: z.string(), score: z.number(), correct: z.number() })
 export const LeaderboardStatus = z.object({
-  enabled: z.boolean(), joined: z.boolean().optional(), can_join: z.boolean().optional(), top: z.array(LbRow).optional(),
+  enabled: z.boolean(), joined: z.boolean().optional(), eligible: z.boolean().optional(), can_join: z.boolean().optional(), top: z.array(LbRow).optional(),
 })
-export const LeaderboardJoin = z.object({ alias: z.string(), rank: z.number(), top: z.array(LbRow) })
+/** eligible = false: la partida no entra al ranking (respuesta neutra del servidor, sin apodo ni puesto). */
+export const LeaderboardJoin = z.object({ eligible: z.boolean().optional(), alias: z.string().optional(), rank: z.number().optional(), top: z.array(LbRow) })
 export type LbRowT = z.infer<typeof LbRow>
 
 export type ItemT = z.infer<typeof Item>
