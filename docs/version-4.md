@@ -9,6 +9,7 @@ Objetivo del estudio: identificar el nivel de responsabilidad que asumen las per
 Por cada una de las 10 noticias (5 confirmadas y 5 falsas, en orden aleatorio):
 
 1. **Decide** en 20 s: Reenviar, Reenviar con aviso, Verificar primero o No reenviar. También puede deslizar la tarjeta (derecha = reenviar, izquierda = no) o usar el teclado (→ ← V A).
+   - **Reenviar con aviso** reenvía la noticia agregando un texto fijo: «Ojo, no sé si es cierto». Se muestra bajo el botón y en la portada, para que todas las personas le den el mismo significado. Es el mismo texto antes y después de verificar. Cuenta como reenviar: la tarjeta sale hacia la derecha y entra en la difusión (E2 sin verificar, E5 verificada).
 2. Si elige **Verificar primero**, tiene 60 s para abrir una fuente (oficial, medio de noticias o comentarios en redes), leerla, decir qué dice («la confirma», «la desmiente», «no dice nada claro») y tomar la decisión final (reenviar, con aviso o no). Puede abrir otra fuente antes de decidir.
 3. Declara su **creencia**: Sí, No o No sé. Es lo único que da puntos: +100 si acierta, −100 si falla, 0 con «No sé». Empieza con 600.
 4. En 2 noticias al azar se pregunta «¿Por qué?» (7 opciones cortas).

@@ -4,6 +4,7 @@ import { apiV4, type SessionV4T, type SummaryV4T } from '../../lib/apiV4'
 import { entryOrigin } from '../../lib/origin'
 import { Chips, Logo, Notice, PrimaryButton, Spinner } from '../ui'
 import { BoardV4 } from './BoardV4'
+import { WARNING_TEXT } from './text'
 import { FinalV4 } from './FinalV4'
 
 type Stage = 'loading' | 'intro' | 'game' | 'final'
@@ -112,7 +113,7 @@ function IntroV4({ onStart, busy, error }: {
             <div key={t} className="flex items-center gap-2 rounded-2xl bg-u px-3 py-2.5 text-[15px] leading-tight"><span aria-hidden className="text-[22px]">{e}</span>{t}</div>
           ))}
         </div>
-        <p className="mt-2 text-sm text-[#CFC3DA]">Después te preguntamos si te la crees. Acertar suma puntos; «No sé» no resta.</p>
+        <p className="mt-2 text-sm text-[#CFC3DA]">«Con aviso» la reenvía con el mensaje «{WARNING_TEXT}». Después te preguntamos si te la crees. Acertar suma puntos; «No sé» no resta.</p>
 
         <div className="mt-4 rounded-[20px] bg-white p-4 text-ink">
           <p id="pv" className="mb-2 font-bold">¿Es la primera vez que juegas este juego?</p>

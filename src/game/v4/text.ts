@@ -7,6 +7,9 @@ export const ACTION_LABEL: Record<ActionT, string> = {
   verificar: 'Verificar primero',
 }
 
+/** Lo que se agrega al reenviar «con aviso». Es parte del instrumento: el mismo texto antes y después de verificar. */
+export const WARNING_TEXT = 'Ojo, no sé si es cierto'
+
 export const STATE_TEXT: Record<string, string> = {
   E1: 'La reenviaste sin verificar.',
   E2: 'La reenviaste con aviso, sin verificar.',

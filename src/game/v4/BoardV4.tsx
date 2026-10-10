@@ -4,7 +4,7 @@ import { apiV4, type ActionT, type BeliefT, type CardFeedbackT, type CardInput, 
 import { NewsCard, type CardHandle } from '../NewsCard'
 import { Notice, Spinner } from '../ui'
 import { FeedbackV4 } from './FeedbackV4'
-import { BELIEF_LABEL, EVAL_LABEL, REASONS, SOURCE_KIND } from './text'
+import { BELIEF_LABEL, EVAL_LABEL, REASONS, SOURCE_KIND, WARNING_TEXT } from './text'
 
 type Props = { payload: SessionV4T; reducedMotion: boolean; onDone: () => void }
 
@@ -122,9 +122,10 @@ export function BoardV4({ payload, reducedMotion, onDone }: Props) {
     draft.current = { first: a, firstMs: ms }
     if (a === null) { finish(null, null); return }  // tiempo agotado: E7, pasa a la siguiente
     saveProgress(sid, position, draft.current)
-    if (a === 'reenviar') cardRef.current?.fly(1)
+    // Reenviar con aviso también es reenviar: la tarjeta sale hacia la derecha
+    if (a === 'reenviar' || a === 'reenviar_aviso') cardRef.current?.fly(1)
     if (a === 'no_reenviar') cardRef.current?.fly(-1)
-    window.setTimeout(() => { locked.current = false; setPhase(a === 'verificar' ? 'sources' : 'belief') }, a === 'reenviar' || a === 'no_reenviar' ? 260 : 0)
+    window.setTimeout(() => { locked.current = false; setPhase(a === 'verificar' ? 'sources' : 'belief') }, a === 'verificar' ? 0 : 260)
   }, [item, phase, seconds, finish, sid, position])
 
   // Temporizador de la primera decisión (corre aunque se prefiera menos movimiento)
@@ -252,6 +253,7 @@ export function BoardV4({ payload, reducedMotion, onDone }: Props) {
             </button>
             <button className="min-h-12 rounded-2xl border-2 border-white/40 bg-u px-2 py-2 text-[15px] font-bold text-white disabled:opacity-50" onClick={() => act('reenviar_aviso')} disabled={busy}>
               ⚠️ Reenviar con aviso
+              <span className="block text-xs font-normal text-[#CFC3DA]">«{WARNING_TEXT}»</span>
             </button>
           </div>
           <p className="pt-2 pb-[calc(12px+env(safe-area-inset-bottom,0px))] text-center text-[13px] text-[#CFC3DA]">Desliza la tarjeta o usa los botones</p>
@@ -321,7 +323,7 @@ export function BoardV4({ payload, reducedMotion, onDone }: Props) {
               <h2 className="mb-3 font-display text-2xl font-bold">Ya verificaste. ¿Qué haces?</h2>
               <div className="grid gap-2">
                 <button onClick={() => decideFinal('reenviar')} className="btn-3d-real min-h-14 rounded-2xl bg-real px-3 py-2 font-display text-lg font-extrabold text-white">Reenviar 👉</button>
-                <button onClick={() => decideFinal('reenviar_aviso')} className="min-h-12 rounded-2xl border-2 border-u bg-white px-3 py-2 font-bold text-ink">⚠️ Reenviar con aviso</button>
+                <button onClick={() => decideFinal('reenviar_aviso')} className="min-h-12 rounded-2xl border-2 border-u bg-white px-3 py-2 font-bold text-ink">⚠️ Reenviar con aviso<span className="block text-xs font-normal text-muted">«{WARNING_TEXT}»</span></button>
                 <button onClick={() => decideFinal('no_reenviar')} className="btn-3d-fake min-h-14 rounded-2xl bg-fake px-3 py-2 font-display text-lg font-extrabold text-white">👈 No reenviar</button>
               </div>
             </>
