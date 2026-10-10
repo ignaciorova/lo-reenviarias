@@ -5,7 +5,7 @@
 
 insert into public.studies (code, version, title, description, status, config, changelog)
 values ('lo-reenviarias', '4.0.0', '¿Lo reenviarías? — responsabilidad antes de compartir',
-  'Cada noticia: reenviar, reenviar con aviso, verificar primero o no reenviar; si verifica, abre una fuente, dice qué dice y decide; después declara si la cree (Sí, No, No sé). Imagen al azar en la mitad de las tarjetas. La encuesta de hábitos es un instrumento aparte y no se vincula con las partidas.',
+  'Cada noticia: reenviar, reenviar con aviso, verificar primero o no reenviar; si verifica, abre una fuente, dice qué dice y decide; después declara si la cree (Sí, No, No sé). Todas las tarjetas llevan imagen. La encuesta de hábitos es un instrumento aparte y no se vincula con las partidas.',
   'draft', '{"mode":"responsabilidad","items_per_session":10,"seconds_per_item":20,"verify_seconds":60,"min_read_ms":2000,"start_points":600,"image_share":1,"why_items":2,"hints_per_session":0,"show_crowd_feedback":false,"leaderboard":true,"percentile_min_n":20,"public_stats_min_n":10,"max_sessions_per_minute":120}'::jsonb,
   'Metodológico: la variable principal pasa a ser la difusión simulada sin verificación previa (E1+E2 sobre R). La creencia se pregunta después de decidir y es lo único que da puntos. Titulares corregidos (r_cuba, r_arancel, f_sinpe y otros). Sin lupas ni alcance simulado. No comparable con 1.0.0–3.1.0.')
 on conflict (code, version) do nothing;
