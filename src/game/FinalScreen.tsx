@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SummaryT } from '../lib/api'
+import { Leaderboard } from './Leaderboard'
 import { Logo, PrimaryButton } from './ui'
 
 export function rankFor(ok: number): [string, string, string] {
@@ -9,7 +10,7 @@ export function rankFor(ok: number): [string, string, string] {
   return ['📢', 'Reenviador frecuente', 'Varias se te colaron. No es falta de inteligencia: los bulos juegan con nuestras emociones.']
 }
 
-export function FinalScreen({ summary, reducedMotion, onNewPerson }: { summary: SummaryT; reducedMotion: boolean; onNewPerson: () => void }) {
+export function FinalScreen({ summary, sessionId, reducedMotion, onNewPerson }: { summary: SummaryT; sessionId?: string; reducedMotion: boolean; onNewPerson: () => void }) {
   const [medal, rank, msg] = rankFor(summary.correct_count)
   const [shareLabel, setShareLabel] = useState('Retar a un amigo')
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -51,6 +52,7 @@ export function FinalScreen({ summary, reducedMotion, onNewPerson }: { summary: 
         <Stat v={String(summary.score ?? '–')} l="puntos" />
         <Stat v={summary.percentile !== null ? `${summary.percentile}%` : '–'} l={summary.percentile !== null ? 'superaste' : 'aún pocos datos'} />
       </div>
+      {sessionId && <Leaderboard sessionId={sessionId} />}
       {summary.simulated_reach_total > 0 && (
         <div className="my-3 rounded-2xl bg-[#FDECEC] p-3.5 text-ink">
           Entre todas las falsas que creíste, tus reenvíos habrían podido llegar a

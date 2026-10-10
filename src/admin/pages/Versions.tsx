@@ -104,6 +104,7 @@ export default function Versions() {
                   <b className="font-display text-lg">{s.version}</b>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${cls}`}>{label}</span>
                   <span className="text-sm">{s.title}</span>
+                  {(s.config as { leaderboard?: boolean }).leaderboard && <span className="rounded-full bg-lav px-2 py-0.5 text-xs">🏆 con ranking</span>}
                   <span className="ml-auto flex flex-wrap gap-3 text-sm">
                     {its.length > 0 && <button aria-expanded={open === s.id} onClick={() => setOpen(open === s.id ? null : s.id)} className="text-u underline underline-offset-4">{open === s.id ? 'Ocultar noticias' : 'Ver noticias'}</button>}
                     {canActivate && <button onClick={() => { setMsg(null); setConfirming(s) }} className="font-bold text-u underline underline-offset-4">{s.status === 'draft' ? 'Activar' : 'Volver a activar'}</button>}
@@ -144,6 +145,7 @@ function Builder({ bank, activeItems, active, versions, onCancel, onCreated }: {
   const [version, setVersion] = useState(() => nextVersion(versions))
   const [title, setTitle] = useState(active.title)
   const [note, setNote] = useState('')
+  const [leaderboard, setLeaderboard] = useState(() => Boolean((active.config as { leaderboard?: boolean }).leaderboard))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const min = Number((active.config as { items_per_session?: number }).items_per_session ?? 10)
@@ -155,9 +157,12 @@ function Builder({ bank, activeItems, active, versions, onCancel, onCreated }: {
   const create = async () => {
     setError(null); setBusy(true)
     const { data, error } = await supabase().rpc('create_study_version', { p_version: version.trim(), p_title: title, p_changelog: note, p_card_ids: [...picked] })
+    if (error) { setBusy(false); setError(friendlyError(error.message)); return }
+    const created = data as { id: string; version: string }
+    const lb = await supabase().rpc('set_draft_leaderboard', { p_study_id: created.id, p_enabled: leaderboard })
     setBusy(false)
-    if (error) { setError(friendlyError(error.message)); return }
-    await onCreated((data as { version: string }).version)
+    if (lb.error) { setError(`Se creó el borrador ${created.version}, pero no se pudo guardar la opción de la tabla. Descártalo y vuelve a intentarlo.`); return }
+    await onCreated(created.version)
   }
 
   return (
@@ -197,6 +202,10 @@ function Builder({ bank, activeItems, active, versions, onCancel, onCreated }: {
         </div>
         <label className="mt-3 block text-xs font-bold text-muted">Qué cambia respecto de la {active.version} (queda en el registro)
           <textarea className="inp mt-1 font-normal text-ink" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ej.: se agrega la noticia del peaje y se cambia la imagen del bus." />
+        </label>
+        <label className="mt-3 flex items-start gap-2 text-sm">
+          <input type="checkbox" checked={leaderboard} onChange={(e) => setLeaderboard(e.target.checked)} className="mt-0.5 h-4 w-4" />
+          <span><b>Ranking de puntuación</b> al final de la partida. Es opcional para el jugador y usa apodos de una lista, sin nombres. Puede cambiar cómo juega la gente, por eso va en la versión.</span>
         </label>
         {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
         <div className="mt-3 flex gap-2">
