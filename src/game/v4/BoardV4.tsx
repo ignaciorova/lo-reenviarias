@@ -230,7 +230,8 @@ export function BoardV4({ payload, reducedMotion, onDone }: Props) {
       </div>
 
       <div className="relative mx-4 mt-3 min-h-[380px] flex-1">
-        {next && <NewsCard item={next} back />}
+        {/* La siguiente tarjeta asoma solo al decidir: detrás de «¿Te la crees?» no debe verse otra noticia */}
+        {next && phase === 'decide' && !sheet && <NewsCard item={next} back />}
         <NewsCard key={item.item_id} ref={cardRef} item={item} labels={{ right: 'REENVIAR', left: 'NO' }}
           disabled={phase !== 'decide' || busy || !!sheet} onSwipe={(d) => act(d > 0 ? 'reenviar' : 'no_reenviar')} />
       </div>
@@ -332,12 +333,14 @@ export function BoardV4({ payload, reducedMotion, onDone }: Props) {
           {phase === 'belief' && (
             <>
               <h2 className="mb-1 font-display text-[28px] font-bold">¿Te la crees?</h2>
-              <p className="mb-3 text-sm text-muted">Acertar suma 100 puntos y fallar resta 100. «No sé» no suma ni resta.</p>
-              <div className="grid gap-2">
+              {/* La regla de puntos se explica solo en la primera noticia, para no repetirla 10 veces */}
+              {position === 1 && <p className="mb-1 text-sm text-muted">Acertar suma 100 puntos y fallar resta 100. «No sé» no suma ni resta.</p>}
+              <div className="mt-2 grid grid-cols-3 gap-2">
                 {(['si', 'no', 'no_se'] as const).map((b) => (
-                  <button key={b} onClick={() => chooseBelief(b)} disabled={busy}
-                    className={`min-h-14 rounded-2xl px-3 py-2 font-display text-lg font-extrabold disabled:opacity-50 ${b === 'si' ? 'bg-real text-white btn-3d-real' : b === 'no' ? 'bg-fake text-white btn-3d-fake' : 'border-2 border-u bg-white text-ink'}`}>
-                    {b === 'si' ? '👍 ' : b === 'no' ? '👎 ' : '🤷 '}{BELIEF_LABEL[b]}
+                  <button key={b} onClick={() => chooseBelief(b)} disabled={busy} aria-label={BELIEF_LABEL[b]}
+                    className={`flex min-h-20 flex-col items-center justify-center gap-0.5 rounded-2xl px-2 py-2 font-display text-lg font-extrabold disabled:opacity-50 ${b === 'si' ? 'bg-real text-white btn-3d-real' : b === 'no' ? 'bg-fake text-white btn-3d-fake' : 'border-2 border-u bg-white text-ink'}`}>
+                    <span aria-hidden className="text-2xl leading-none">{b === 'si' ? '👍' : b === 'no' ? '👎' : '🤷'}</span>
+                    {b === 'si' ? 'Sí' : b === 'no' ? 'No' : 'No sé'}
                   </button>
                 ))}
               </div>
