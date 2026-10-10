@@ -10,8 +10,6 @@ export const StudyInfo = z.object({
   version: z.string().optional(),
   mode: z.string().optional(),
   items: z.number().optional(),
-  survey_url: z.string().nullable().optional(),
-  survey_code_entry: z.string().nullable().optional(),
 })
 
 const Display = z.object({
@@ -76,11 +74,9 @@ export const SessionV4 = z.object({
   instrument_version: z.string(),
   config: z.object({
     items_per_session: z.number(), seconds_per_item: z.number(), verify_seconds: z.number(), start_points: z.number(),
-    leaderboard: z.boolean(), survey_url: z.string().nullable(), survey_code_entry: z.string().nullable(),
+    leaderboard: z.boolean(),
   }),
-  survey_code: z.string().nullable(),
   entry_origin: z.string().nullable(),
-  survey_intent: z.string().nullable(),
   questions: z.array(Question),
   answered_phases: z.array(z.enum(['pre', 'post'])),
   items: z.array(ItemV4),
@@ -109,7 +105,6 @@ export type BeliefT = z.infer<typeof Belief>
 export type EvaluationT = z.infer<typeof Evaluation>
 export type SourceKindT = z.infer<typeof SourceKind>
 export type StudyInfoT = z.infer<typeof StudyInfo>
-export type SurveyIntent = 'antes' | 'ya_respondio' | 'despues' | 'no'
 
 /** Lo que el teléfono envía al terminar una noticia (el servidor valida y calcula el estado y los puntos). */
 export type CardInput = {
@@ -127,17 +122,16 @@ export type CardInput = {
 type Opt = { onRetry?: (n: number) => void }
 export const apiV4 = {
   studyInfo: () => rpc('study_info', { p_study_code: STUDY_CODE }, StudyInfo, { retries: 2 }),
-  startSession: (sessionId: string, reducedMotion: boolean, entry: { origin: string | null; intent: SurveyIntent | null; code: string | null; replay: boolean }, o: Opt = {}) =>
+  startSession: (sessionId: string, reducedMotion: boolean, entry: { origin: string | null; replay: boolean }, o: Opt = {}) =>
     rpc('start_session_v4', {
       p_session_id: sessionId, p_consent: true, p_device_class: deviceClass(), p_reduced_motion: reducedMotion,
-      p_entry_origin: entry.origin, p_survey_intent: entry.intent, p_survey_code: entry.code, p_study_code: STUDY_CODE,
+      // La encuesta es un instrumento independiente: no se envía código de vinculación
+      p_entry_origin: entry.origin, p_survey_intent: null, p_survey_code: null, p_study_code: STUDY_CODE,
       p_device_replay: entry.replay,
     }, SessionV4, o),
   submitPre: (sessionId: string, answers: Record<string, string>, o: Opt = {}) =>
     rpc('submit_survey', { p_session_id: sessionId, p_phase: 'pre', p_answers: answers }, z.object({ ok: z.boolean() }).passthrough(), o),
   getSession: (sessionId: string, o: Opt = {}) => rpc('get_session_v4', { p_session_id: sessionId }, SessionV4, { retries: 2, ...o }),
-  setSurveyCode: (sessionId: string, code: string | null, intent: SurveyIntent | null) =>
-    rpc('set_survey_code', { p_session_id: sessionId, p_code: code, p_survey_intent: intent }, z.object({ ok: z.boolean() }).passthrough(), { retries: 3 }),
   openSource: (sessionId: string, position: number, kind: SourceKindT, o: Opt = {}) =>
     rpc('open_source', { p_session_id: sessionId, p_position: position, p_kind: kind }, OpenedSource, o),
   submitCard: (sessionId: string, position: number, card: CardInput, o: Opt = {}) =>

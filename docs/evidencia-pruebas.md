@@ -99,17 +99,17 @@ Entorno local separado de producción: base `lr_e2e4` con todas las migraciones,
 
 | Conjunto | Resultado |
 |---|---|
-| `npm run db:test` (suites 10, 20, 30 y 40) | 121 + 39 + 22 + 72 aserciones OK |
-| `npx vitest run` | 30 OK (incluye Wilcoxon comparado con scipy, p = 0,008590) |
-| `e2e/v4.spec.ts` (móvil y escritorio) | 8 OK |
+| `npm run test:sql` (suites 10, 20, 30 y 40) | 121 + 39 + 22 + 72 aserciones OK |
+| `npx vitest run` | 27 OK (incluye Wilcoxon comparado con scipy, p = 0,008590) |
+| `e2e/v4.spec.ts` (móvil y escritorio) | 6 OK |
 | `e2e/v4-panel.spec.ts` | 3 OK |
 | Suite E2E de 1.0.0–3.1.0 contra `lr_e2e` | 38 OK |
 
 Qué comprueban las E2E de la 4.0.0:
 - Una partida con botones, gestos y teclado produce exactamente los estados esperados (E1 E3 E2 E6 E7 E3 E1 E3 E1 E3) y una lectura medida por el servidor de al menos 2 s.
-- El enlace a Google Forms lleva `usp=pp_url` y el código; el código queda guardado con el momento «después».
+- Sin vinculación con la encuesta: la portada y el resultado no piden código ni ofrecen el formulario, y la sesión queda con `survey_code` y `survey_intent` vacíos aunque se entre con `?origen=encuesta`.
 - Al recargar a mitad de una verificación, la partida vuelve a las fuentes y conserva la apertura (E5).
-- Panel: el indicador principal, sus límites y cinco secundarios coinciden con un cálculo SQL independiente sobre las tablas. Un CSV con el formato de Google Forms se une por código. El CSV exportado tiene tantas filas como la vista y deja registro en la auditoría. El owner edita las fuentes (la versión activa no cambia) y el viewer solo las ve. La pantalla no se desborda en un teléfono.
+- Panel: el indicador principal, sus límites y cinco secundarios coinciden con un cálculo SQL independiente sobre las tablas. La encuesta aparece en un recuadro aparte, sin carga de archivos ni unión por persona; el CSV exportado no trae columnas de código. El CSV exportado tiene tantas filas como la vista y deja registro en la auditoría. El owner edita las fuentes (la versión activa no cambia) y el viewer solo las ve. La pantalla no se desborda en un teléfono.
 
 ```bash
 bash /tmp/lr4/reset4.sh   # crea lr_e2e4, activa la 4.0.0 solo en local y arranca PostgREST en 3002

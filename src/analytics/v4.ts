@@ -5,9 +5,8 @@
 //   Principal: difusión sin verificación previa = (E1 + E2) / R, calculada por sesión y promediada entre sesiones.
 //   Límites por tiempo agotado: inferior = (E1 + E2) / (R + E7); superior = (E1 + E2 + E7) / (R + E7).
 // ---------------------------------------------------------------------------
-import { chiSquareSf, mean, meanCI, ranks, sd, spearman, kruskalWallis, type TestResult } from './stats'
+import { chiSquareSf, mean, meanCI, ranks, sd, type TestResult } from './stats'
 import type { Table } from './export'
-import { normalizeCode } from '../lib/surveyCode'
 
 export type ShareSessionRow = {
   session_id: string; instrument_version: string; status: string; is_test: boolean; exclusion_reason: string | null
@@ -202,90 +201,19 @@ export function byPosition(decisions: ShareDecisionRow[], ids: Set<string>) {
 }
 
 // ---------------------------------------------------------------------------
-// Encuesta (Google Forms): unión por código seudónimo, solo en el navegador
-// ---------------------------------------------------------------------------
-
-/** CSV de Google Forms (separador «,» o «;», comillas dobles). */
-export function parseCSV(text: string): string[][] {
-  const t = text.replace(/^﻿/, '')
-  const firstLine = t.split(/\r?\n/, 1)[0] ?? ''
-  const sep = (firstLine.match(/;/g)?.length ?? 0) > (firstLine.match(/,/g)?.length ?? 0) ? ';' : ','
-  const rows: string[][] = []
-  let row: string[] = [], cell = '', q = false
-  for (let i = 0; i < t.length; i++) {
-    const ch = t[i]
-    if (q) {
-      if (ch === '"') { if (t[i + 1] === '"') { cell += '"'; i++ } else q = false }
-      else cell += ch
-    } else if (ch === '"') q = true
-    else if (ch === sep) { row.push(cell); cell = '' }
-    else if (ch === '\n' || ch === '\r') {
-      if (ch === '\r' && t[i + 1] === '\n') i++
-      row.push(cell); rows.push(row); row = []; cell = ''
-    } else cell += ch
-  }
-  if (cell !== '' || row.length) { row.push(cell); rows.push(row) }
-  return rows.filter((r) => r.some((c) => c.trim() !== ''))
-}
-
-
-export type SurveyJoin = {
-  header: string[]; rows: string[][]; codeCol: number
-  matched: { session: ShareSessionRow; row: string[] }[]
-  unmatchedRows: number; noCodeRows: number; duplicateCodes: number
-}
-
-/** Une las respuestas de la encuesta con las sesiones por código. Si un código aparece en varias sesiones, se usa la primera completa. */
-export function joinSurvey(table: string[][], codeCol: number, sessions: ShareSessionRow[]): SurveyJoin {
-  const [header, ...rows] = table
-  const byCode = new Map<string, ShareSessionRow>()
-  for (const s of [...sessions].sort((a, b) => a.started_at.localeCompare(b.started_at))) if (s.survey_code && !byCode.has(s.survey_code)) byCode.set(s.survey_code, s)
-  const seen = new Set<string>()
-  const matched: SurveyJoin['matched'] = []
-  let unmatched = 0, noCode = 0, dup = 0
-  for (const r of rows) {
-    const c = normalizeCode(r[codeCol] ?? '')
-    if (!c) { noCode++; continue }
-    if (seen.has(c)) { dup++; continue }
-    seen.add(c)
-    const s = byCode.get(c)
-    if (s) matched.push({ session: s, row: r }); else unmatched++
-  }
-  return { header, rows, codeCol, matched, unmatchedRows: unmatched, noCodeRows: noCode, duplicateCodes: dup }
-}
-
-/** Niveles de una pregunta en el orden en que aparecen (o numéricos ascendentes si todos son números). */
-export function levelsOf(values: string[]): string[] {
-  const u = [...new Set(values.map((v) => v.trim()).filter(Boolean))]
-  return u.every((v) => Number.isFinite(Number(v.replace(',', '.')))) ? u.sort((a, b) => Number(a.replace(',', '.')) - Number(b.replace(',', '.'))) : u
-}
-
-/** Hábito declarado (ordinal) frente a un indicador del juego: Spearman con el orden dado y Kruskal–Wallis por nivel. */
-export function habitVsBehavior(pairs: { level: string; value: number }[], order: string[]) {
-  const ok = pairs.filter((p) => order.includes(p.level) && Number.isFinite(p.value))
-  const groups: Record<string, number[]> = {}
-  for (const l of order) groups[l] = ok.filter((p) => p.level === l).map((p) => p.value)
-  return {
-    perLevel: order.map((l) => ({ level: l, n: groups[l].length, m: groups[l].length ? mean(groups[l]) : NaN })),
-    spearman: spearman(ok.map((p) => order.indexOf(p.level)), ok.map((p) => p.value)),
-    kruskal: kruskalWallis(groups),
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Exportación
 // ---------------------------------------------------------------------------
 const r4 = (x: number) => (Number.isFinite(x) ? Math.round(x * 10000) / 10000 : null)
 
 export function v4SessionsTable(rows: ShareSessionRow[]): Table {
-  const cols = ['session_id', 'version', 'estado', 'valida', 'prueba', 'exclusion', 'primera_vez', 'otra_partida_en_dispositivo', 'origen', 'encuesta_momento', 'codigo_encuesta', 'dispositivo', 'inicio_utc', 'fin_utc', 'duracion_s',
+  const cols = ['session_id', 'version', 'estado', 'valida', 'prueba', 'exclusion', 'primera_vez', 'otra_partida_en_dispositivo', 'origen', 'dispositivo', 'inicio_utc', 'fin_utc', 'duracion_s',
     'R', 'E1', 'E2', 'E3', 'E4', 'E5', 'E6', 'E7', 'E8', 'difusion_sin_verificar', 'limite_inferior_E7', 'limite_superior_E7', 'no_difusion_sin_verificar', 'verificacion_iniciada', 'verificacion_efectiva', 'difusion_total',
     'uso_aviso', 'evaluacion_correcta', 'no_se', 'precision_creencia', 'discernimiento', 'puntos']
   return {
     name: 'participantes_v4', columns: cols,
     rows: rows.map((s) => {
       const i = sessionIndicators(s)
-      return [s.session_id, s.instrument_version, s.status, s.is_valid, s.is_test, s.exclusion_reason, s.primera_vez, s.device_replay, s.entry_origin, s.survey_intent, s.survey_code, s.device_class, s.started_at, s.completed_at, s.duration_seconds,
+      return [s.session_id, s.instrument_version, s.status, s.is_valid, s.is_test, s.exclusion_reason, s.primera_vez, s.device_replay, s.entry_origin, s.device_class, s.started_at, s.completed_at, s.duration_seconds,
         s.r_answered, s.e1, s.e2, s.e3, s.e4, s.e5, s.e6, s.e7, s.e8, r4(i.dsv), r4(i.dsvLo), r4(i.dsvHi), r4(i.noShare), r4(i.verInit), r4(i.verEff), r4(i.shareTotal),
         r4(i.warning), r4(i.evalCorrect), r4(i.noSe), r4(i.accuracy), r4(i.discernment), s.score]
     }),
@@ -293,11 +221,11 @@ export function v4SessionsTable(rows: ShareSessionRow[]): Table {
 }
 
 export function v4DecisionsTable(rows: ShareDecisionRow[]): Table {
-  const cols = ['session_id', 'version', 'codigo_encuesta', 'noticia', 'es_real', 'posicion', 'con_imagen', 'estado', 'primera_accion', 'ms_primera_accion', 'tiempo_agotado', 'etapa_tiempo_agotado',
+  const cols = ['session_id', 'version', 'noticia', 'es_real', 'posicion', 'con_imagen', 'estado', 'primera_accion', 'ms_primera_accion', 'tiempo_agotado', 'etapa_tiempo_agotado',
     'fuentes_abiertas', 'fuente_leida', 'ms_lectura', 'evaluacion', 'evaluacion_correcta', 'verificacion_efectiva', 'accion_final', 'creencia', 'creencia_correcta', 'motivo', 'puntos', 'registrada_utc']
   return {
     name: 'decisiones_v4', columns: cols,
-    rows: rows.map((d) => [d.session_id, d.instrument_version, d.survey_code, d.item_key, d.is_real, d.position, d.image_shown, d.state, d.first_action, d.first_action_ms, d.timed_out, d.timeout_stage,
+    rows: rows.map((d) => [d.session_id, d.instrument_version, d.item_key, d.is_real, d.position, d.image_shown, d.state, d.first_action, d.first_action_ms, d.timed_out, d.timeout_stage,
       (d.sources_opened ?? []).join('|'), d.source_kind, d.read_ms, d.evaluation, d.evaluation_correct, d.effective_verification, d.final_action, d.belief, d.belief_correct, d.reason, d.points, d.created_at]),
   }
 }
@@ -316,7 +244,7 @@ export function v4DictionaryTable(): Table {
     ['evaluacion_correcta', 'Evaluaciones de la fuente correctas / verificaciones iniciadas.'], ['no_se', 'Respuestas «No sé» / R.'],
     ['precision_creencia', 'Creencias correctas / respuestas Sí o No.'], ['discernimiento', 'P(Sí | real) − P(Sí | falsa) con la creencia declarada.'],
     ['creencia', 'Declarada DESPUÉS de decidir: puede ajustarse para justificar la decisión.'],
-    ['codigo_encuesta', 'Código seudónimo voluntario para unir con la encuesta. No identifica a la persona.'],
+    ['origen', 'Canal por el que llegó (?origen=: qr_juego, enlace, encuesta, otro). No vincula con respuestas de la encuesta.'],
     ['primera_vez', 'Respuesta a «¿Es la primera vez que juegas este juego?». El análisis principal usa solo primeras partidas.'],
     ['otra_partida_en_dispositivo', 'El navegador ya había terminado otra partida de la 4.0.0.'],
   ]

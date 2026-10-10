@@ -35,7 +35,7 @@ async function belief(page: Page, b: 'si' | 'no' | 'no_se', n: number, shotName?
   await fb.getByRole('button', { name: n < 10 ? 'Siguiente noticia' : 'Ver mi resultado' }).click()
 }
 
-test('partida 4.0.0 completa: decisiones, verificación, creencia, resultado y encuesta', async ({ page }) => {
+test('partida 4.0.0 completa: decisiones, verificación, creencia y resultado', async ({ page }) => {
   const sid = await startV4(page, '/?origen=qr_juego')
   await shot(page, '02-tarjeta')
   // 1 reenviar (botón), 2 no reenviar (tecla), 3 con aviso, 4 verificar → oficial, 5 tiempo agotado, 6..10 deslizar/botones
@@ -79,52 +79,24 @@ test('partida 4.0.0 completa: decisiones, verificación, creencia, resultado y e
   const s = sql<{ status: string; entry_origin: string; survey_code: string | null }>(`select status, entry_origin, survey_code from public.participant_sessions where id = '${sid}'`)[0]
   expect(s).toMatchObject({ status: 'completed', entry_origin: 'qr_juego', survey_code: null })
 
-  // Encuesta después de jugar: abre Google Forms con el código prellenado y lo enlaza a la sesión
-  // Sin salir a internet: se responde la página de Google Forms con un HTML mínimo y se lee la URL pedida
-  const formRequests: string[] = []
-  await page.context().route('https://docs.google.com/**', (r) => { formRequests.push(r.request().url()); return r.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Formulario</h1>' }) })
-  const popup = page.waitForEvent('popup')
-  await page.getByRole('button', { name: 'Responder la encuesta' }).click()
-  const p = await popup
-  await expect.poll(() => formRequests.length).toBeGreaterThan(0)
-  const u = new URL(formRequests[0])
-  expect(u.hostname).toBe('docs.google.com')
-  expect(u.searchParams.get('usp')).toBe('pp_url')
-  const code = u.searchParams.get('entry.1234567890')!
-  expect(code).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}$/)
-  await p.close()
-  await expect.poll(() => sql<{ survey_code: string; survey_intent: string }>(`select survey_code, survey_intent from public.participant_sessions where id = '${sid}'`)[0])
-    .toEqual({ survey_code: code.replace('-', ''), survey_intent: 'despues' })
+  // La encuesta es un instrumento independiente: el resultado no la ofrece ni pide códigos
+  await expect(page.getByText(/encuesta/i)).toHaveCount(0)
+  await expect(page.getByRole('textbox')).toHaveCount(0)
 
   // Recargar la página final la muestra igual (persistencia)
   await page.reload()
   await expect(page.getByText('adivinaste si eran reales')).toBeVisible()
 })
 
-test('entrada por el QR de la encuesta: /codigo da un código y el juego lo ofrece', async ({ page }) => {
-  await page.goto('/codigo')
-  const shown = (await page.locator('p.font-mono').textContent())!.trim()
-  expect(shown).toMatch(/^[0-9A-Z]{4}-[0-9A-Z]{4}$/)
-  await shot(page, '08-codigo')
-  await page.goto('/?origen=encuesta')
-  await expect(page.getByText('¡Gracias por responder la encuesta!')).toBeVisible()
-  await expect(page.getByText(shown)).toBeVisible()
-  await shot(page, '09-portada-desde-encuesta')
-  const sid = await startV4(page, '/?origen=encuesta')
-  const s = sql<{ survey_code: string; entry_origin: string; survey_intent: string }>(`select survey_code, entry_origin, survey_intent from public.participant_sessions where id = '${sid}'`)[0]
-  expect(s).toEqual({ survey_code: shown.replace('-', ''), entry_origin: 'encuesta', survey_intent: 'antes' })
-})
-
-test('código mal escrito: avisa y no deja empezar; sin código se puede jugar', async ({ page }) => {
+test('sin vinculación con la encuesta: la portada no pide código y no se guarda ninguno', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Ya la respondí' }).click()
-  await page.getByLabel(/Tu código de la encuesta/).fill('ABCD-EFGH')
-  await page.getByRole('radio', { name: 'Sí, es la primera vez' }).click()
-  await expect(page.getByText('Ese código no es válido')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Acepto y quiero jugar' })).toBeDisabled()
-  await page.getByLabel(/Tu código de la encuesta/).fill('')
-  await page.getByRole('button', { name: 'Acepto y quiero jugar' }).click()
-  await expect(page.getByText('Noticia 1 de 10')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /reenviarías/ })).toBeVisible()
+  await expect(page.getByText(/encuesta/i)).toHaveCount(0)
+  await expect(page.getByRole('textbox')).toHaveCount(0)
+  // Quien llega con ?origen=encuesta solo queda registrado como canal de entrada
+  const sid = await startV4(page, '/?origen=encuesta')
+  const s = sql<{ entry_origin: string; survey_code: string | null; survey_intent: string | null }>(`select entry_origin, survey_code, survey_intent from public.participant_sessions where id = '${sid}'`)[0]
+  expect(s).toEqual({ entry_origin: 'encuesta', survey_code: null, survey_intent: null })
 })
 
 test('recarga a mitad de una verificación: retoma en las fuentes y no pierde la apertura', async ({ page }) => {

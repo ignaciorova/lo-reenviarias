@@ -3,11 +3,11 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { fetchAll } from '../data'
 import { DataTable, Empty, Kpi, Section, TestResultView, FAKE, GREY, PURPLE, REAL } from '../components'
 import { supabase } from '../../lib/supabase'
-import { fmtP, fmtPct } from '../../analytics/stats'
+import { fmtPct } from '../../analytics/stats'
 import { download, toCSV, toXLSX } from '../../analytics/export'
 import {
-  analysisSample, byPosition, habitVsBehavior, holm, itemTable, joinSurvey, levelsOf, pairedComparison, parseCSV, sessionIndicators, summarize,
-  v4DecisionsTable, v4DictionaryTable, v4SessionsTable, type Estimate, type ShareDecisionRow, type ShareSessionRow, type SurveyJoin,
+  analysisSample, byPosition, itemTable, pairedComparison, summarize,
+  v4DecisionsTable, v4DictionaryTable, v4SessionsTable, type Estimate, type ShareDecisionRow, type ShareSessionRow,
 } from '../../analytics/v4'
 
 const STATE_COLORS: Record<string, string> = { E1: FAKE, E2: '#E07A2E', E3: GREY, E4: '#2E7FB8', E5: '#5BA3D6', E6: REAL, E7: '#D9D3E0' }
@@ -155,7 +155,7 @@ function Body({ m, firstOnly }: { m: M; firstOnly: boolean }) {
             ])} />
         </Section>
 
-        <Survey included={m.included} all={m.sessions} />
+        <SurveyNote />
         <Exports sessions={m.sessions} decisions={m.decisions} included={m.included} />
       </>}
     </>
@@ -181,88 +181,22 @@ function Pair({ a, b, la, lb }: { a: Estimate; b: Estimate; la: string; lb: stri
 }
 
 // ---------------------------------------------------------------------------
-// Encuesta: el archivo se lee en este navegador y no se sube a ningún servidor
+// Encuesta: instrumento independiente. No se une con las partidas.
 // ---------------------------------------------------------------------------
-const OUTCOMES = [
-  ['dsv', 'Difusión sin verificación (principal)'],
-  ['verEff', 'Verificación efectiva'],
-] as const
-
-function Survey({ included, all }: { included: ShareSessionRow[]; all: ShareSessionRow[] }) {
-  const [table, setTable] = useState<string[][] | null>(null)
-  const [fileName, setFileName] = useState('')
-  const [codeCol, setCodeCol] = useState(-1)
-  const [habitCol, setHabitCol] = useState(-1)
-  const [order, setOrder] = useState<string[]>([])
-  const withCode = all.filter((s) => s.survey_code).length
-  const inclWithCode = included.filter((s) => s.survey_code).length
-
-  const onFile = async (f: File | undefined) => {
-    if (!f) return
-    const t = parseCSV(await f.text())
-    setTable(t); setFileName(f.name); setHabitCol(-1); setOrder([])
-    setCodeCol(t[0]?.findIndex((h) => /c[oó]digo/i.test(h)) ?? -1)
-  }
-  const join: SurveyJoin | null = useMemo(() => (table && codeCol >= 0 ? joinSurvey(table, codeCol, included) : null), [table, codeCol, included])
-  const pickHabit = (i: number) => { setHabitCol(i); setOrder(join ? levelsOf(join.matched.map((x) => x.row[i] ?? '')) : []) }
-  const move = (k: number) => setOrder((o) => { const n = [...o]; [n[k - 1], n[k]] = [n[k], n[k - 1]]; return n })
-
-  const results = useMemo(() => {
-    if (!join || habitCol < 0 || order.length < 2) return null
-    const rs = OUTCOMES.map(([key, label]) => ({ key, label, r: habitVsBehavior(join.matched.map((x) => ({ level: (x.row[habitCol] ?? '').trim(), value: sessionIndicators(x.session)[key] })), order) }))
-    const adj = holm(rs.map((x) => x.r.spearman.p ?? 1))
-    return rs.map((x, i) => ({ ...x, pHolm: x.r.spearman.p !== undefined ? adj[i] : undefined }))
-  }, [join, habitCol, order])
-
+function SurveyNote() {
   return (
-    <Section title="Hábitos declarados y decisiones en el juego" description={<>Prioridad del análisis. Se une la encuesta de Google Forms con las partidas por el código seudónimo. <b>El archivo se lee solo en este navegador; no se sube a ningún servidor.</b></>}>
-      <p className="mb-2 text-sm">{withCode} de {all.length} sesiones de la 4.x tienen código; {inclWithCode} de las {included.length} incluidas en el análisis.</p>
-      <label className="block text-sm font-bold">Respuestas de la encuesta (CSV descargado de Google Forms)
-        <input type="file" accept=".csv,text/csv" onChange={(e) => void onFile(e.target.files?.[0])} className="mt-1 block text-sm font-normal" />
-      </label>
-      {table && (
-        <div className="mt-3 grid gap-3 text-sm">
-          <p className="text-muted">{fileName}: {table.length - 1} respuestas, {table[0]?.length ?? 0} columnas.</p>
-          <label className="flex flex-wrap items-center gap-2">Columna del código
-            <select value={codeCol} onChange={(e) => setCodeCol(Number(e.target.value))} className="max-w-full rounded-md border border-soft px-2 py-1">
-              <option value={-1}>Elige…</option>{table[0].map((h, i) => <option key={i} value={i}>{h.slice(0, 80)}</option>)}
-            </select>
-          </label>
-          {join && (
-            <>
-              <p><b>{join.matched.length}</b> respuestas unidas con una partida incluida · {join.noCodeRows} sin código · {join.unmatchedRows} con código que no coincide con ninguna partida incluida · {join.duplicateCodes} códigos repetidos (se usa la primera respuesta).</p>
-              <label className="flex flex-wrap items-center gap-2">Pregunta de hábito
-                <select value={habitCol} onChange={(e) => pickHabit(Number(e.target.value))} className="max-w-full rounded-md border border-soft px-2 py-1">
-                  <option value={-1}>Elige…</option>{table[0].map((h, i) => i !== codeCol && <option key={i} value={i}>{h.slice(0, 80)}</option>)}
-                </select>
-              </label>
-            </>
-          )}
-          {order.length > 0 && (
-            <div>
-              <p className="mb-1">Orden de las respuestas, de menor a mayor frecuencia (ajústalo si hace falta):</p>
-              <ol className="grid gap-1">{order.map((l, k) => (
-                <li key={l} className="flex items-center gap-2 rounded bg-lav/50 px-2 py-1"><span className="w-5 text-muted">{k + 1}.</span><span className="flex-1">{l}</span>
-                  {k > 0 && <button onClick={() => move(k)} aria-label={`Subir ${l}`} className="rounded border border-soft px-2">↑</button>}</li>
-              ))}</ol>
-            </div>
-          )}
-          {results && results.map((x) => (
-            <div key={x.key} className="rounded-lg border border-soft p-3">
-              <h3 className="font-bold">{x.label}</h3>
-              <DataTable columns={['Respuesta', 'n', 'Promedio']} rows={x.r.perLevel.map((l) => [l.level, l.n, fmtPct(l.m)])} />
-              <TestResultView r={x.r.spearman} />
-              {x.pHolm !== undefined && <p className="mt-1 text-sm">p ajustado por Holm (dos indicadores) = <b>{fmtP(x.pHolm)}</b></p>}
-              {x.r.spearman.n < 85 && <p className="mt-1 text-xs text-amber-800">Menos de 85 personas unidas: se informa como exploratorio (no alcanza la potencia prevista para ρ = 0,3).</p>}
-            </div>
-          ))}
-        </div>
-      )}
+    <section aria-labelledby="enc-indep" className="mb-5 rounded-xl border-2 border-dashed border-soft bg-[#FBFAFC] p-4">
+      <h2 id="enc-indep" className="font-display text-lg font-bold">Encuesta de hábitos: instrumento independiente</h2>
+      <p className="mt-1 max-w-3xl text-sm">
+        Todo lo de arriba sale <b>solo del juego</b> (decisiones simuladas). La encuesta de Google Forms (hábitos declarados de consumo, verificación, difusión y responsabilidad)
+        se aplicó por separado y <b>no se vincula</b> con las partidas: no hay código común, así que no se sabe qué persona respondió qué.
+      </p>
       <Limits>
-        Solo entran las personas que usaron el código. Quien no lo usó no se puede unir, y no sabemos si se parece a quien sí lo usó; el resultado describe a quienes se vincularon.
-        Un código mal escrito no une. El orden encuesta–juego se infiere de las marcas de tiempo y del momento elegido en el juego («antes», «ya la respondí», «después»).
+        Si más adelante se incorporan los resultados agregados de la encuesta, se mostrarán en una sección aparte y solo a nivel de grupo.
+        No se calculan correlaciones persona a persona entre hábitos y decisiones, ni se supone que las dos muestras sean las mismas personas:
+        pueden diferir en quién participó, cuándo y cuántas veces. Una coincidencia o diferencia entre los dos instrumentos se describe, no se interpreta como relación individual.
       </Limits>
-    </Section>
+    </section>
   )
 }
 
@@ -285,7 +219,6 @@ function Exports({ sessions, decisions, included }: { sessions: ShareSessionRow[
         <button onClick={() => csv(v4DecisionsTable(decisions))} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Decisiones (CSV)</button>
         <button onClick={() => csv(v4DictionaryTable())} className="rounded-lg border border-soft bg-white px-3 py-2 hover:bg-lav">Diccionario (CSV)</button>
       </div>
-      <p className="mt-2 text-xs text-muted">Para unir con Google Forms fuera del panel: columna «codigo_encuesta» del archivo de participantes.</p>
     </Section>
   )
 }

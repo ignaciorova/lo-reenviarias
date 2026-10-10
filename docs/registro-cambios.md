@@ -17,7 +17,7 @@ No es comparable con 1.0.0–3.1.0: cambia la variable principal. Detalle en [ve
 | M5 | Imagen en 5 de 10 tarjetas, al azar por noticia, equilibrando reales y falsas. | Efecto de la imagen como análisis exploratorio. | Cada noticia con imagen en ≈ 50 % de las partidas. |
 | M6 | Titulares y fuentes corregidos (r_cuba, r_arancel, f_sinpe y otros); 5 reales y 5 falsas con expediente. | Precisión de los estímulos. | Las noticias no son idénticas a las de 3.x. |
 | M7 | Pregunta inicial «¿Es la primera vez que juegas?» y marca de otra partida en el dispositivo. | El análisis principal usa solo primeras partidas. | — |
-| M8 | Encuesta de Google Forms enlazada por código seudónimo voluntario. | Relacionar hábitos declarados con decisiones simuladas. | Solo se unen quienes usan el código. |
+| M8 | La encuesta de Google Forms y el juego son instrumentos independientes; no se vinculan persona a persona (decisión del 10/10/2026: la encuesta ya se envió y no se modifica). | No inferir correspondencias que no se puedan demostrar. | Hábitos y decisiones solo se comparan a nivel de grupo, de forma descriptiva. |
 
 ### Cambios técnicos
 
@@ -25,7 +25,7 @@ No es comparable con 1.0.0–3.1.0: cambia la variable principal. Detalle en [ve
 |---|---|
 | T1 | Tablas `share_decisions` y `source_opens`; vistas `v_share_decisions` y `v_share_sessions`; funciones `start_session_v4`, `submit_card`, `open_source`, `set_survey_code`, `complete_session_v4`, `study_info`. |
 | T2 | `start_session` (1.0.0–3.1.0) se niega con la 4.x activa. |
-| T3 | Panel: pantalla «Responsabilidad (4.x)», editor de fuentes en el banco, encuesta del borrador en Versiones. Las pantallas de 1.0.0–3.1.0 excluyen las sesiones 4.x. |
+| T3 | Panel: pantalla «Responsabilidad (4.x)», editor de fuentes en el banco, recuadro aparte sobre la encuesta como instrumento independiente. Las pantallas de 1.0.0–3.1.0 excluyen las sesiones 4.x. |
 | T4 | En la 4.x no se arma una versión con noticias sin sus tres fuentes. |
 
 ## Instrumento 2.0.0 (activo desde el 9/10/2026)

@@ -73,62 +73,45 @@ Las proporciones sin denominador (por ejemplo, «con aviso» en quien no reenvi�
 ## 5. Estadística
 
 - **Estimación principal:** promedio entre sesiones de la difusión sin verificación previa, con IC 95 % (t de Student sobre las medias por sesión). Se acompaña de su distribución, los dos límites por tiempo agotado y el desglose por tipo de noticia.
-- **Hipótesis prioritaria (hábitos declarados frente a decisiones):** correlación de Spearman entre cada pregunta de hábito de la encuesta y (a) la difusión sin verificación y (b) la verificación efectiva, en las personas unidas por código. Se corrige por Holm entre esos dos indicadores. Se acompaña del promedio por respuesta y de Kruskal–Wallis. Con menos de 85 personas unidas (potencia de 80 % para ρ = 0,3) se informa como exploratoria.
+- **Hábitos declarados y decisiones simuladas:** se analizan por separado. La encuesta (hábitos declarados) y el juego (decisiones simuladas) son instrumentos independientes y **no se vinculan persona a persona**. No se calcula ninguna correlación individual entre ellos. Si se incorporan los resultados agregados de la encuesta, se comparan solo a nivel de grupo y de forma descriptiva (sección 6).
 - **Exploratorio, sin prueba confirmatoria:**
   - Imagen frente a sin imagen: Wilcoxon de rangos con signo pareada por sesión. La imagen se asigna al azar por noticia.
   - Confirmadas frente a falsas.
   - Cambio a lo largo de la partida.
   - Repeticiones.
-- El panel solo calcula p con al menos 10 pares con diferencia (Wilcoxon) o 10 personas (Spearman). La prueba de Wilcoxon coincide con `scipy.stats.wilcoxon(method="approx", correction=True)`.
+- El panel solo calcula p con al menos 10 pares con diferencia (Wilcoxon) . La prueba de Wilcoxon coincide con `scipy.stats.wilcoxon(method="approx", correction=True)`.
 - Muestra por autoselección: no se generaliza a la población. Las asociaciones no demuestran causalidad.
 
-## 6. Encuesta en Google Forms
+## 6. Encuesta y juego: dos instrumentos independientes
 
-La vinculación es voluntaria y usa un **código seudónimo** de 8 caracteres (7 al azar más 1 de control), por ejemplo `K7M2-Q9XD`. El código no contiene datos de la persona. Se puede entrar por cualquiera de los dos QR.
+Decisión del 10/10/2026: la encuesta de Google Forms ya se envió a los participantes y no se puede modificar. Por eso la 4.0.0 **no** incluye ninguna vinculación con ella (sin código, sin enlaces prellenados, sin página `/codigo`).
 
-### Cómo se configura (una vez, en un borrador)
+| | Encuesta (Google Forms) | Juego 4.0.0 |
+|---|---|---|
+| Qué mide | Hábitos **declarados** de consumo, verificación, difusión y responsabilidad | Decisiones **simuladas**: compartir, verificar fuentes, actuar ante la incertidumbre |
+| Unidad | Respuesta al formulario | Sesión de juego anónima |
+| Dónde se analiza | Fuera de esta plataforma | Panel → Responsabilidad (4.x) |
 
-1. En el formulario, agrega una pregunta de respuesta corta **«Código del juego»** (no obligatoria). En Configuración, deja **desactivada** la recolección de correos y el inicio de sesión.
-2. Menú ⋮ → **Obtener vínculo prellenado**. Escribe `ABCD1234` en «Código del juego» y copia el vínculo. El número que sigue a `entry.` junto a `ABCD1234` es el **campo del código**.
-3. En el panel, Versiones del juego → el borrador 4.x → «📝 Encuesta»: pega el enlace que termina en `/viewform` y el `entry.…`. Solo se puede cambiar en borradores, porque es parte del instrumento. El panel acepta solo enlaces de Google Forms.
-4. En la descripción o primera sección del formulario, agrega el enlace **`https://<dominio>/codigo`**. Ahí la persona obtiene su código para escribirlo.
-5. En Configuración → Presentación → **Mensaje de confirmación**, pon `https://<dominio>/?origen=encuesta`. Al terminar la encuesta, la persona entra al juego y se le ofrece usar el código guardado en ese teléfono.
+Reglas para combinarlos:
 
-### Recorridos
+- No se vinculan respuestas individuales ni se infieren correspondencias que no se puedan demostrar.
+- Cada instrumento se resume por separado, con su propia muestra y su propio n.
+- Si más adelante se incorporan los resultados **agregados** de la encuesta, se muestran en una sección aparte, rotulada como otro instrumento, junto con estas limitaciones.
 
-- **QR del juego, encuesta primero (recomendado en la portada):** «Primero la encuesta» crea el código, lo guarda en el teléfono y abre el formulario con el código ya escrito (`usp=pp_url&entry.N=CÓDIGO`). La confirmación del formulario devuelve al juego, que propone enlazar ese código.
-- **QR de la encuesta:** la persona pide su código en `/codigo`, lo escribe en el formulario y luego juega desde el mismo teléfono. Si juega en otro teléfono, escribe el código a mano.
-- **Juega primero:** al final, «Responder la encuesta» abre el formulario con el código escrito y guarda el enlace con el momento «después».
-- **«Ya la respondí»:** escribe su código; se valida el carácter de control antes de guardarlo.
+Limitaciones de la comparación entre instrumentos:
 
-### Qué se verificó y qué no
+- No se sabe si las dos muestras son las mismas personas, ni en qué proporción. Pueden diferir en quién participó, cuándo y cuántas veces.
+- Una coincidencia o una diferencia entre lo declarado y lo simulado describe a los grupos. No permite concluir que quien declara un hábito actúa de cierta forma (falacia ecológica).
+- Lo declarado puede tener sesgo de deseabilidad social. Lo simulado ocurre en un juego, no en un chat real.
 
-- **Verificado en local, en pruebas automáticas:**
-  - El vínculo prellenado lleva `usp=pp_url` y el código en el campo configurado; la llamada a Google se intercepta en la prueba.
-  - El código queda guardado en la sesión con el momento elegido (antes, ya respondió, después).
-  - Un código inválido se rechaza.
-  - `/codigo` → formulario → `/?origen=encuesta` ofrece el código guardado.
-  - En el panel, un CSV con el formato de Google Forms se une por código, aunque esté en minúsculas o con guion.
-- **No verificado:** el formulario real. Falta su enlace y el `entry.` de «Código del juego». Cuando el equipo los tenga, se cargan en el borrador y se prueba el recorrido completo en la vista previa con un teléfono.
-- Si el formulario se comparte con un enlace corto `forms.gle/…`, el código **no** se escribe solo. Usa el enlace largo `/viewform`.
-
-### Limitaciones para quien no usa el código
-
-- Sin código no hay unión. Esas personas aportan sus decisiones del juego, pero no entran en la hipótesis de hábitos frente a decisiones.
-- No sabemos si quien usa el código se parece a quien no lo usa. El resultado de la hipótesis describe a las personas vinculadas. Para cuantificarlo, el panel muestra cuántas sesiones tienen código, y conviene comparar el indicador principal entre sesiones con y sin código.
-- Un código mal escrito no une. El carácter de control detecta casi todos los errores de una letra, y O/I/L se leen como 0/1. Una respuesta del formulario con un código que no existe se cuenta como «no coincide».
-- En otro teléfono el juego no recuerda el código: hay que escribirlo.
-- Si un código aparece en varias respuestas del formulario, se usa la primera. Si aparece en varias partidas, se usa la primera partida completa.
-- El orden encuesta–juego se infiere de las marcas de tiempo y del momento elegido en el juego. No se controla.
-- El archivo de Google Forms se lee en el navegador de quien analiza y **no se sube** a la base del estudio.
+Lo que queda en la base sin uso: las columnas `survey_code`, `survey_intent` y `survey_code_at` de `participant_sessions`, y las funciones `set_survey_code` y `set_draft_survey`, creadas por la migración 20261011000100. El juego y el panel ya no las usan; siempre quedan vacías. Se mantienen para no cambiar una migración ya probada; se pueden quitar en una versión futura. El parámetro `?origen=` (por ejemplo `qr_juego` o `enlace`) solo registra el canal de entrada.
 
 ## 7. Panel de investigación
 
 - **Responsabilidad (4.x):** muestra de análisis y recorrido de exclusiones; indicador principal con IC y límites; secundarios; distribución; estados; por tipo, por imagen y por posición; tabla por noticia.
-  - **Hábitos frente a decisiones:** se sube el CSV de Google Forms, se elige la columna del código y la pregunta, y se ajusta el orden de las respuestas.
+  - **Encuesta de hábitos:** un recuadro aparte recuerda que es un instrumento independiente, sin vinculación persona a persona, con sus limitaciones.
   - **Exportación:** XLSX y CSV de participantes, decisiones y diccionario. Cada descarga queda en la auditoría.
 - **Banco de noticias → Fuentes:** edita las tres fuentes de cada noticia y lo que dice cada una. Lo que dice cada fuente es la respuesta correcta, que el jugador nunca recibe. En la 4.x no se puede armar una versión con noticias sin sus tres fuentes.
-- **Versiones del juego → Encuesta:** configura el formulario de un borrador 4.x.
 - Las pantallas de 1.0.0 a 3.1.0 excluyen las sesiones 4.x, porque sus variables son otras.
 
 ## 8. Seguridad y persistencia
@@ -137,7 +120,7 @@ La vinculación es voluntaria y usa un **código seudónimo** de 8 caracteres (7
 - Todo lo que cuenta lo calcula el servidor: estado, lectura, verificación efectiva y puntos. Los envíos son idempotentes, y una tarjeta incoherente se rechaza (por ejemplo, fuentes abiertas sin haber elegido verificar).
 - Al recargar, la partida se reanuda en la misma noticia, también a mitad de una verificación.
 - `start_session` (1.0.0 a 3.1.0) se niega con la 4.0.0 activa. Así un teléfono con la página vieja no mezcla flujos.
-- RLS: la clave anónima no lee ninguna tabla nueva. Solo el personal del estudio ve las vistas. Editar fuentes y encuesta requiere rol analyst; activar versiones requiere owner.
+- RLS: la clave anónima no lee ninguna tabla nueva. Solo el personal del estudio ve las vistas. Editar fuentes requiere rol analyst; activar versiones requiere owner.
 - No se piden nombre, correo ni IP.
 
 ## 9. Pruebas ejecutadas (entorno local, PostgreSQL 16 + PostgREST + Vite)
@@ -148,9 +131,9 @@ La vinculación es voluntaria y usa un **código seudónimo** de 8 caracteres (7
 | SQL 20 (banco de noticias) | 39 OK |
 | SQL 30 (ranking) | 22 OK |
 | SQL 40 (4.0.0) | 72 OK |
-| Unitarias (Vitest) | 30 OK |
-| E2E 4.0.0: partida completa, código, código inválido, recarga a mitad de verificación (móvil y escritorio) | 8 OK |
-| E2E panel 4.x: cifras contra SQL independiente, unión con la encuesta, exportación auditada, fuentes owner/viewer, vista móvil sin desborde | 3 OK |
+| Unitarias (Vitest) | 27 OK |
+| E2E 4.0.0: partida completa, portada sin código ni encuesta, recarga a mitad de verificación (móvil y escritorio) | 6 OK |
+| E2E panel 4.x: cifras contra SQL independiente, encuesta aparte y sin vincular, exportación auditada, fuentes owner/viewer, vista móvil sin desborde | 3 OK |
 | E2E 1.0.0 a 3.1.0 (regresión, móvil y escritorio) | 38 OK |
 
 Ejecutadas el 10/10/2026 sobre la rama `claude/version-4`. Cómo reproducirlas: `docs/evidencia-pruebas.md`.
@@ -159,7 +142,7 @@ Ejecutadas el 10/10/2026 sobre la rama `claude/version-4`. Cómo reproducirlas: 
 
 1. Revisar la vista previa con el equipo.
 2. **Con aprobación explícita**, aplicar en producción `20261011000100_version_4_responsabilidad.sql` y `20261011000200_version_4_borrador.sql`. Son aditivas: la 3.1.0 sigue en juego y la 4.0.0 queda en borrador.
-3. Cargar la encuesta en el borrador (sección 6) y probar el recorrido con un teléfono.
+3. Probar el recorrido con un teléfono en la vista previa (base de pruebas).
 4. Piloto con unas 30 personas. Con la DE del panel, fijar la meta de muestra y el tiempo mínimo de lectura.
 5. Activar la 4.0.0 desde Versiones del juego (owner). Para volver atrás se reactiva la 3.1.0 desde la misma pantalla. Los datos de cada versión se conservan.
 

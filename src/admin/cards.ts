@@ -83,8 +83,6 @@ export function friendlyError(message: string): string {
     ['fuente_url_invalida', 'El enlace de la fuente debe empezar con https://'],
     ['fuente_comentarios_invalidos', 'Hasta 4 comentarios por fuente.'],
     ['fuente', 'Revisa las fuentes: una de ellas no es válida.'],
-    ['url_de_encuesta_invalida', 'Usa el enlace de Google Forms que termina en /viewform (docs.google.com/forms/d/e/…/viewform).'],
-    ['campo_de_codigo_invalido', 'El campo del código tiene la forma entry.123456789.'],
     ['solo_borradores', 'Solo se puede cambiar en un borrador. La versión en juego no se edita.'],
   ]
   return map.find(([k]) => message.includes(k))?.[1] ?? 'No se pudo guardar. Revisa los campos e inténtalo otra vez.'

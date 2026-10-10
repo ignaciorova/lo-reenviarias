@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analysisSample, habitVsBehavior, holm, itemTable, joinSurvey, levelsOf, pairedComparison, parseCSV, sessionIndicators, summarize, wilcoxonSigned, type ShareDecisionRow, type ShareSessionRow } from './v4'
+import { analysisSample, holm, itemTable, pairedComparison, sessionIndicators, summarize, wilcoxonSigned, type ShareDecisionRow, type ShareSessionRow } from './v4'
 
 const base: ShareSessionRow = {
   session_id: 's', instrument_version: '4.0.0', status: 'completed', is_test: false, exclusion_reason: null, entry_origin: null, survey_intent: null, survey_code: null, survey_code_at: null,
@@ -104,29 +104,5 @@ describe('por noticia y comparación pareada', () => {
     expect(c.a!.m).toBeGreaterThan(c.b!.m)
     expect(c.test.assumptionsMet).toBe(true)
     expect(c.test.p!).toBeLessThan(0.01)
-  })
-})
-
-describe('encuesta', () => {
-  it('CSV de Google Forms con comillas, comas y saltos de línea', () => {
-    const t = parseCSV('﻿"Marca temporal","Código del juego","¿Verificas?"\r\n"2026/10/11 10:00","abcd-efgh","Casi siempre"\r\n"2026/10/11","","Nunca, ""jamás""\nnunca"\r\n')
-    expect(t).toHaveLength(3)
-    expect(t[2][2]).toBe('Nunca, "jamás"\nnunca')
-  })
-  it('une por código normalizado y cuenta lo que no une', () => {
-    const s1 = sess('x1', { survey_code: '0123ABCD', e1: 1, e3: 9 })
-    const s2 = sess('x2', { survey_code: '1111AAAA', e1: 1 })
-    const table = [['t', 'codigo', 'h'], ['1', 'o123-abcd', 'Siempre'], ['2', '', 'Nunca'], ['3', 'ZZZZZZZZ', 'Nunca'], ['4', '0123ABCD', 'Nunca']]
-    const j = joinSurvey(table, 1, [s1, s2])
-    expect(j.matched.map((m) => m.session.session_id)).toEqual(['x1'])
-    expect(j).toMatchObject({ unmatchedRows: 1, noCodeRows: 1, duplicateCodes: 1 })
-  })
-  it('niveles y hábito frente a conducta', () => {
-    expect(levelsOf(['3', '1', '10', '2'])).toEqual(['1', '2', '3', '10'])
-    expect(levelsOf(['Nunca', 'Siempre', 'Nunca'])).toEqual(['Nunca', 'Siempre'])
-    const pairs = Array.from({ length: 30 }, (_, i) => ({ level: ['Nunca', 'A veces', 'Siempre'][i % 3], value: (i % 3) * 0.3 + (i % 5) * 0.01 }))
-    const r = habitVsBehavior(pairs, ['Nunca', 'A veces', 'Siempre'])
-    expect(r.spearman.statistic!).toBeGreaterThan(0.9)
-    expect(r.perLevel.map((l) => l.n)).toEqual([10, 10, 10])
   })
 })

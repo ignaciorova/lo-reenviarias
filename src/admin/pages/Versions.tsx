@@ -111,7 +111,6 @@ export default function Versions() {
                   {its.length ? `${its.length} noticias (${reales} reales, ${its.length - reales} falsas)` : 'Sin noticias en el catálogo'} · {(sessionsBy.get(s.version) ?? 0).toLocaleString('es-CR')} sesiones
                   {s.changelog && <> · {s.changelog}</>}
                 </p>
-                {(s.config as { mode?: string }).mode === 'responsabilidad' && <SurveyConfig study={s} canEdit={canEdit && s.status === 'draft'} onSaved={async (m) => { setMsg(m); await refresh() }} />}
                 {open === s.id && (
                   <ul className="mt-2 grid gap-2 sm:grid-cols-2">
                     {its.map((i) => (
@@ -212,47 +211,5 @@ function Builder({ bank, activeItems, active, versions, onCancel, onCreated }: {
         <p className="mt-2 text-xs text-muted">El borrador no lo ve ningún jugador hasta que alguien con rol owner lo active.</p>
       </Section>
     </div>
-  )
-}
-
-/** Encuesta de Google Forms enlazada a una versión 4.x. Es parte del instrumento: solo se cambia en borradores. */
-function SurveyConfig({ study, canEdit, onSaved }: { study: StudyRow; canEdit: boolean; onSaved: (m: string) => Promise<void> }) {
-  const cfg = study.config as { survey_url?: string | null; survey_code_entry?: string | null }
-  const [url, setUrl] = useState(cfg.survey_url ?? '')
-  const [entry, setEntry] = useState(cfg.survey_code_entry ?? '')
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const game = `${location.origin}/`
-  const save = async () => {
-    setError(null); setBusy(true)
-    const { error } = await supabase().rpc('set_draft_survey', { p_study_id: study.id, p_survey_url: url.trim() || null, p_code_entry: entry.trim() || null })
-    setBusy(false)
-    if (error) { setError(friendlyError(error.message)); return }
-    await onSaved(url.trim() ? `Encuesta guardada en el borrador ${study.version}.` : `El borrador ${study.version} quedó sin encuesta.`)
-  }
-  return (
-    <details className="mt-2 rounded-lg border border-soft bg-[#FBFAFC] p-3 text-sm" open={canEdit && !cfg.survey_url}>
-      <summary className="cursor-pointer font-bold">📝 Encuesta (Google Forms) {cfg.survey_url ? <span className="font-normal text-real">· enlazada</span> : <span className="font-normal text-muted">· sin encuesta</span>}</summary>
-      {canEdit ? (
-        <div className="mt-2 grid gap-2">
-          <label className="text-xs font-bold text-muted">Enlace del formulario (el que termina en /viewform)
-            <input className="inp mt-1 font-normal text-ink" placeholder="https://docs.google.com/forms/d/e/…/viewform" value={url} onChange={(e) => setUrl(e.target.value)} />
-          </label>
-          <label className="text-xs font-bold text-muted">Campo de la pregunta «Código del juego» (entry.…)
-            <input className="inp mt-1 font-mono font-normal text-ink" placeholder="entry.123456789" value={entry} onChange={(e) => setEntry(e.target.value)} />
-          </label>
-          {error && <p role="alert" className="rounded bg-red-50 p-2 text-red-800">{error}</p>}
-          <div><button disabled={busy} onClick={() => void save()} className="rounded-lg bg-u px-4 py-1.5 font-bold text-white disabled:opacity-50">{busy ? 'Guardando…' : 'Guardar encuesta'}</button></div>
-        </div>
-      ) : (
-        <p className="mt-2 break-all">{cfg.survey_url ? <>Formulario: {cfg.survey_url} · campo del código: <span className="font-mono">{cfg.survey_code_entry ?? '—'}</span></> : 'Esta versión no tiene encuesta.'}{study.status !== 'draft' && ' (no se edita: es parte de la versión)'}</p>
-      )}
-      <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-muted">
-        <li>En el formulario, agrega una pregunta de respuesta corta «Código del juego» (opcional) y desactiva la recolección de correos.</li>
-        <li>Menú ⋮ → «Obtener vínculo prellenado», escribe ABCD1234 en el código y copia el vínculo: el número después de <span className="font-mono">entry.</span> es el campo.</li>
-        <li>En la primera sección, enlaza a <span className="font-mono">{game}codigo</span> para quien empieza por la encuesta.</li>
-        <li>En «Configuración → Presentación → Mensaje de confirmación», pon <span className="font-mono">{game}?origen=encuesta</span>.</li>
-      </ol>
-    </details>
   )
 }

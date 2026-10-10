@@ -38,7 +38,7 @@ let sql = `-- 0010: versión 4.0.0 en BORRADOR (generado por scripts/gen-v4-seed
 
 insert into public.studies (code, version, title, description, status, config, changelog)
 values ('lo-reenviarias', '4.0.0', '¿Lo reenviarías? — responsabilidad antes de compartir',
-  'Cada noticia: reenviar, reenviar con aviso, verificar primero o no reenviar; si verifica, abre una fuente, dice qué dice y decide; después declara si la cree (Sí, No, No sé). Imagen al azar en la mitad de las tarjetas. Encuesta enlazada con código seudónimo opcional.',
+  'Cada noticia: reenviar, reenviar con aviso, verificar primero o no reenviar; si verifica, abre una fuente, dice qué dice y decide; después declara si la cree (Sí, No, No sé). Imagen al azar en la mitad de las tarjetas. La encuesta de hábitos es un instrumento aparte y no se vincula con las partidas.',
   'draft', ${json(config)},
   'Metodológico: la variable principal pasa a ser la difusión simulada sin verificación previa (E1+E2 sobre R). La creencia se pregunta después de decidir y es lo único que da puntos. Titulares corregidos (r_cuba, r_arancel, f_sinpe y otros). Sin lupas ni alcance simulado. No comparable con 1.0.0–3.1.0.')
 on conflict (code, version) do nothing;

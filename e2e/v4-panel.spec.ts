@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { hasDb, sql, sqlExec } from './helpers'
-import { newCode } from '../src/lib/surveyCode'
 
 // Panel de la 4.0.0 contra un entorno local con la 4.0.0 activa (E2E_V4=1, E2E_LOCAL_DB=lr_e2e4, E2E_TOKEN_DIR con los JWT locales).
 // Las partidas se crean por la API pública (las mismas funciones que usa el teléfono) y las cifras del panel se comparan con SQL independiente.
@@ -20,10 +19,10 @@ async function rpc(req: APIRequestContext, fn: string, body: Record<string, unkn
 type Plan = { action: 'reenviar' | 'reenviar_aviso' | 'no_reenviar' | 'verificar' | 'timeout'; final?: 'reenviar' | 'reenviar_aviso' | 'no_reenviar'; effective?: boolean; belief: 'si' | 'no' | 'no_se' }
 
 /** Juega una partida completa por la API. Devuelve el id de sesión. */
-async function play(req: APIRequestContext, plan: Plan[], opts: { code?: string; first?: boolean } = {}) {
+async function play(req: APIRequestContext, plan: Plan[], opts: { first?: boolean } = {}) {
   const sid = crypto.randomUUID()
   const p = await rpc(req, 'start_session_v4', { p_session_id: sid, p_consent: true, p_device_class: 'mobile', p_reduced_motion: false, p_entry_origin: 'qr_juego',
-    p_survey_intent: opts.code ? 'antes' : 'no', p_survey_code: opts.code ?? null, p_study_code: 'lo-reenviarias', p_device_replay: false })
+    p_survey_intent: null, p_survey_code: null, p_study_code: 'lo-reenviarias', p_device_replay: false })
   await rpc(req, 'submit_survey', { p_session_id: sid, p_phase: 'pre', p_answers: { primera_vez: opts.first === false ? 'No, ya había jugado' : 'Sí, es la primera vez' } })
   for (let i = 0; i < 10; i++) {
     const it = p.items[i] as { position: number; item_id: string }
@@ -76,11 +75,10 @@ const pct = (x: number) => `${(x * 100).toLocaleString('es-CR', { minimumFractio
 
 test.describe.configure({ mode: 'serial' })
 
-test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; encuesta unida por código', async ({ page, request }, info) => {
+test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; la encuesta aparece aparte, sin vincular', async ({ page, request }, info) => {
   test.skip(info.project.name !== 'escritorio', 'los datos se crean una sola vez')
-  const codes = [newCode(), newCode()]
-  await play(request, P('R R A N N V v T N R'), { code: codes[0] })
-  await play(request, P('N N N N N V V V A R'), { code: codes[1] })
+  await play(request, P('R R A N N V v T N R'))
+  await play(request, P('N N N N N V V V A R'))
   await play(request, P('R R R R R R R A A T'))
   await play(request, P('T T T T T T T T T T'))                          // todo agotado: fuera, se cuenta aparte
   await play(request, P('R R R R R R R R R R'), { first: false })         // repetición: fuera del análisis principal
@@ -130,18 +128,10 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
   await expect(main).toContainText(`n = ${nAll}`)
   await page.getByLabel('Solo primeras partidas (análisis principal)').check()
 
-  // Encuesta: CSV como el que descarga Google Forms; se une por código (en minúsculas y con guion, como lo escribiría una persona)
-  const fmt = (c: string) => `${c.slice(0, 4)}-${c.slice(4)}`.toLowerCase()
-  const csv = ['"Marca temporal","Código del juego","¿Con qué frecuencia verificas antes de compartir?"',
-    `"2026/10/11 10:00:00","${fmt(codes[0])}","A veces"`, `"2026/10/11 10:01:00","${codes[1]}","Siempre"`,
-    '"2026/10/11 10:02:00","","Nunca"', '"2026/10/11 10:03:00","ZZZZ-ZZZZ","Casi nunca"'].join('\r\n')
-  await page.getByLabel(/Respuestas de la encuesta/).setInputFiles({ name: 'encuesta.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
-  await expect(page.getByText(/respuestas unidas con una partida incluida/)).toContainText('2 respuestas unidas')
-  await expect(page.getByText(/respuestas unidas con una partida incluida/)).toContainText('1 sin código')
-  await expect(page.getByText(/respuestas unidas con una partida incluida/)).toContainText('1 con código que no coincide')
-  await page.getByLabel('Pregunta de hábito').selectOption({ label: '¿Con qué frecuencia verificas antes de compartir?' })
-  await expect(page.getByRole('heading', { name: 'Difusión sin verificación (principal)' })).toBeVisible()
-  await expect(page.getByText('N < 10: no se calcula.').first()).toBeVisible()
+  // Encuesta: instrumento independiente, en una sección aparte y sin carga de archivos ni unión por persona
+  await expect(page.getByRole('heading', { name: 'Encuesta de hábitos: instrumento independiente' })).toBeVisible()
+  await expect(page.getByText(/no se vincula/)).toBeVisible()
+  await expect(page.locator('input[type=file]')).toHaveCount(0)
   if (process.env.E2E_SHOTS) await page.screenshot({ path: `${process.env.E2E_SHOTS}/escritorio-10-panel.png`, fullPage: true })
 
   // Exportación: CSV de participantes con las mismas sesiones que la vista y registro de auditoría
@@ -153,6 +143,7 @@ test('panel 4.x: indicador principal, límites y secundarios coinciden con SQL; 
   const total = sql<{ n: number }>(`select count(*)::int as n from public.v_share_sessions`)[0].n
   expect(lines.length - 1).toBe(total)
   expect(lines[0]).toContain('"difusion_sin_verificar"')
+  expect(lines[0]).not.toContain('codigo_encuesta')
   await expect.poll(() => sql<{ n: number }>(`select count(*)::int as n from public.audit_events where action = 'export'`)[0].n).toBe(before + 1)
 })
 
