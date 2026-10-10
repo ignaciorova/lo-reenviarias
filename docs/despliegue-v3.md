@@ -20,6 +20,8 @@ Se aplica `supabase/migrations/20261010000100_version_3_imagenes.sql` en el SQL 
 
 Al final, la propia migración comprueba que queden 10 noticias con medio y las mismas preguntas. Se puede volver a ejecutar sin efecto.
 
+**Hecho en producción (2026-10-10 01:37 UTC):** el paso 1 se fusionó en el PR #1 (commit 95659da) y Vercel lo desplegó. La migración se aplicó en Supabase con `apply_migration`. Consulta posterior: la 3.0.0 está en `draft` con 10 noticias, las 10 con medio y una sola etiqueta, y 5 preguntas; la 2.0.0 sigue `active`. Los archivos de `/media/v3/` responden 200 en producción.
+
 ## Paso 3. Activación
 
 ```sql
