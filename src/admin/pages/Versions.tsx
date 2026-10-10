@@ -104,7 +104,7 @@ export default function Versions() {
                   <b className="font-display text-lg">{s.version}</b>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${cls}`}>{label}</span>
                   <span className="text-sm">{s.title}</span>
-                  {(s.config as { leaderboard?: boolean }).leaderboard && <span className="rounded-full bg-lav px-2 py-0.5 text-xs">🏆 con tabla</span>}
+                  {(s.config as { leaderboard?: boolean }).leaderboard && <span className="rounded-full bg-lav px-2 py-0.5 text-xs">🏆 con ranking</span>}
                   <span className="ml-auto flex flex-wrap gap-3 text-sm">
                     {its.length > 0 && <button aria-expanded={open === s.id} onClick={() => setOpen(open === s.id ? null : s.id)} className="text-u underline underline-offset-4">{open === s.id ? 'Ocultar noticias' : 'Ver noticias'}</button>}
                     {canActivate && <button onClick={() => { setMsg(null); setConfirming(s) }} className="font-bold text-u underline underline-offset-4">{s.status === 'draft' ? 'Activar' : 'Volver a activar'}</button>}
@@ -205,7 +205,7 @@ function Builder({ bank, activeItems, active, versions, onCancel, onCreated }: {
         </label>
         <label className="mt-3 flex items-start gap-2 text-sm">
           <input type="checkbox" checked={leaderboard} onChange={(e) => setLeaderboard(e.target.checked)} className="mt-0.5 h-4 w-4" />
-          <span><b>Tabla de puntuación semanal</b> al final de la partida. Es opcional para el jugador y usa apodos de una lista, sin nombres. Puede cambiar cómo juega la gente, por eso va en la versión.</span>
+          <span><b>Ranking de puntuación</b> al final de la partida. Es opcional para el jugador y usa apodos de una lista, sin nombres. Puede cambiar cómo juega la gente, por eso va en la versión.</span>
         </label>
         {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
         <div className="mt-3 flex gap-2">

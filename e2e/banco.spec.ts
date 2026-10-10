@@ -90,11 +90,11 @@ test.describe('Banco de noticias y versiones', () => {
     await page.getByRole('button', { name: 'Crear borrador' }).click()
     await expect(page.getByRole('alert')).toContainText('nota de cambios')
     await page.getByLabel(/Qué cambia/).fill('Se agrega la noticia del peaje (prueba E2E).')
-    await page.getByRole('checkbox', { name: /Tabla de puntuación semanal/ }).check()
+    await page.getByRole('checkbox', { name: /Ranking de puntuación/ }).check()
     await page.getByRole('button', { name: 'Crear borrador' }).click()
     await expect(page.getByRole('status').filter({ hasText: `Borrador ${version} creado` })).toBeVisible()
     expect(sql(`select status, (config->>'leaderboard')::boolean as lb from studies where version = '${version}'`)).toEqual([{ status: 'draft', lb: true }])
-    await expect(page.locator('li').filter({ has: page.locator('b', { hasText: version }) }).getByText('🏆 con tabla')).toBeVisible()
+    await expect(page.locator('li').filter({ has: page.locator('b', { hasText: version }) }).getByText('🏆 con ranking')).toBeVisible()
 
     // Activar con confirmación
     const row = page.locator('li').filter({ has: page.locator('b', { hasText: new RegExp(`^${version.replace(/\./g, '\\.')}$`) }) })

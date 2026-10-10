@@ -9,14 +9,14 @@ test.describe('Tabla de puntuación', () => {
 
   test('al final, entrar es opcional y se publica solo el apodo', async ({ page }) => {
     const sid = await startAndAnswerOpinion(page)
-    await expect(page.getByText('Tabla de la semana')).toHaveCount(0)
+    await expect(page.getByText('🏆 Ranking')).toHaveCount(0)
     for (let i = 1; i <= 10; i++) await decideCurrent(page, 'real', i)
     await page.getByRole('radio', { name: 'Sí, verificaría más' }).click()
     await page.getByRole('button', { name: 'Ver mi resultado' }).click()
 
-    const board = page.getByRole('region', { name: '🏆 Tabla de la semana' })
+    const board = page.getByRole('region', { name: '🏆 Ranking' })
     await expect(board).toBeVisible()
-    await board.getByRole('button', { name: 'Entrar a la tabla (opcional)' }).click()
+    await board.getByRole('button', { name: 'Entrar al ranking (opcional)' }).click()
     const alias = board.locator('p.font-display')
     const first = await alias.textContent()
     for (let i = 0; i < 5 && (await alias.textContent()) === first; i++) await board.getByRole('button', { name: '🎲 Otro' }).click()
@@ -25,7 +25,7 @@ test.describe('Tabla de puntuación', () => {
     await board.getByRole('button', { name: 'Publicar' }).click()
     await expect(board.getByRole('status')).toContainText(`¡Listo, ${chosen}!`)
     await expect(board.getByRole('listitem').filter({ hasText: chosen })).toBeVisible()
-    await expect(board.getByRole('button', { name: 'Entrar a la tabla (opcional)' })).toHaveCount(0)
+    await expect(board.getByRole('button', { name: 'Entrar al ranking (opcional)' })).toHaveCount(0)
 
     const [g] = sql<{ score: number; joined: boolean }>(`select g.score, s.leaderboard_joined as joined from game_sessions_summary g join participant_sessions s on s.id = g.session_id where s.id = '${sid}'`)
     expect(g.joined).toBe(true)
@@ -34,6 +34,6 @@ test.describe('Tabla de puntuación', () => {
     // Al recargar sigue la tabla, pero ya no se puede volver a entrar
     await page.reload()
     await expect(board.getByRole('listitem').filter({ hasText: chosen })).toBeVisible()
-    await expect(board.getByRole('button', { name: 'Entrar a la tabla (opcional)' })).toHaveCount(0)
+    await expect(board.getByRole('button', { name: 'Entrar al ranking (opcional)' })).toHaveCount(0)
   })
 })

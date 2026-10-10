@@ -36,9 +36,9 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
 
   return (
     <section aria-labelledby="lb-title" className="my-4 rounded-[20px] bg-white p-[18px] text-ink">
-      <h2 id="lb-title" className="font-display text-[22px] font-bold">🏆 Tabla de la semana</h2>
-      {mine && <p role="status" className="mt-1 rounded-xl bg-[#E8F5E9] p-2.5 text-sm">¡Listo, <b>{mine.alias}</b>! Vas en el puesto <b>{mine.rank}</b> de esta semana.</p>}
-      {state.top.length === 0 ? <p className="mt-1 text-sm text-muted">Nadie ha entrado todavía esta semana. ¡Puedes ser la primera persona!</p> : (
+      <h2 id="lb-title" className="font-display text-[22px] font-bold">🏆 Ranking</h2>
+      {mine && <p role="status" className="mt-1 rounded-xl bg-[#E8F5E9] p-2.5 text-sm">¡Listo, <b>{mine.alias}</b>! Vas en el puesto <b>{mine.rank}</b>.</p>}
+      {state.top.length === 0 ? <p className="mt-1 text-sm text-muted">Nadie ha entrado todavía al ranking. ¡Puedes ser la primera persona!</p> : (
         <ol className="mt-2 divide-y divide-black/5">
           {state.top.map((r) => (
             <li key={r.rank + r.alias} className={`flex items-center gap-2 py-1.5 text-sm ${mine?.alias === r.alias ? 'font-bold' : ''}`}>
@@ -51,7 +51,7 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
         </ol>
       )}
       {state.canJoin && !picking && (
-        <button onClick={() => setPicking(true)} className="mt-3 w-full rounded-full border-2 border-u py-2.5 font-bold text-u">Entrar a la tabla (opcional)</button>
+        <button onClick={() => setPicking(true)} className="mt-3 w-full rounded-full border-2 border-u py-2.5 font-bold text-u">Entrar al ranking (opcional)</button>
       )}
       {picking && (
         <div className="mt-3 rounded-xl bg-lav/60 p-3">
@@ -63,7 +63,7 @@ export function Leaderboard({ sessionId }: { sessionId: string }) {
             <button onClick={() => setPicking(false)} className="px-2 py-2 text-sm text-muted underline">Mejor no</button>
           </div>
           {error && <p role="alert" className="mt-2 text-sm text-fake">{error}</p>}
-          <p className="mt-2 text-xs text-muted">Se publican solo el apodo y tus puntos de esta semana. No se pueden relacionar con tus respuestas.</p>
+          <p className="mt-2 text-xs text-muted">Se publican solo el apodo y tus puntos. No se pueden relacionar con tus respuestas.</p>
         </div>
       )}
     </section>
