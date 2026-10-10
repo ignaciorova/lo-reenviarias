@@ -143,7 +143,9 @@ function SurveyScreen({ questions, level, title, subtitle, cta, busy, error, onS
   questions: QuestionT[]; level: string; title: string; subtitle?: string; cta: string; busy: string | null; error: string | null; onSubmit: (a: Record<string, string>) => void
 }) {
   const [ans, setAns] = useState<Record<string, string>>({})
-  const complete = questions.every((q) => !q.required || (q.kind === 'open' ? (ans[q.key]?.trim().length ?? 0) >= q.min_length : !!ans[q.key]))
+  const answered = (q: QuestionT) => !q.required || (q.kind === 'open' ? (ans[q.key]?.trim().length ?? 0) >= q.min_length : !!ans[q.key])
+  const pending = questions.filter((q) => !answered(q)).length
+  const complete = pending === 0
   return (
     <main className="mx-auto max-w-[520px] px-5 pt-[calc(22px+env(safe-area-inset-top,0px))] pb-9">
       <span className="mb-2.5 inline-block rounded-full bg-gold px-3 py-1 text-[13px] font-bold text-ink">{level}</span>
@@ -155,9 +157,15 @@ function SurveyScreen({ questions, level, title, subtitle, cta, busy, error, onS
             {q.kind === 'open' ? (
               <>
                 <label htmlFor={`q-${q.key}`} className="mb-2.5 block font-bold">{q.prompt}</label>
-                <textarea id={`q-${q.key}`} maxLength={q.max_length} value={ans[q.key] ?? ''} onChange={(e) => setAns({ ...ans, [q.key]: e.target.value })}
+                <textarea id={`q-${q.key}`} aria-describedby={`h-${q.key}`} maxLength={q.max_length} value={ans[q.key] ?? ''} onChange={(e) => setAns({ ...ans, [q.key]: e.target.value })}
                   placeholder="Escribe lo que realmente harías…" className="min-h-[110px] w-full resize-y rounded-xl border-2 border-soft p-3 text-ink focus:border-u focus:outline-none" />
-                <p className="mt-1 text-right text-xs text-muted tabular">{(ans[q.key] ?? '').length}/{q.max_length}</p>
+                {/* Si la respuesta es más corta que el mínimo, se dice por qué no se puede avanzar (antes solo se desactivaba el botón). */}
+                <div className="mt-1 flex items-start justify-between gap-3 text-xs">
+                  <p id={`h-${q.key}`} aria-live="polite" className={(ans[q.key] ?? '').trim().length > 0 && !answered(q) ? 'font-bold text-fake' : 'text-muted'}>
+                    {q.required && q.min_length > 1 ? `Escribe al menos ${q.min_length} caracteres.` : ''}
+                  </p>
+                  <p className="shrink-0 text-muted tabular">{(ans[q.key] ?? '').length}/{q.max_length}</p>
+                </div>
               </>
             ) : (
               <>
@@ -169,7 +177,7 @@ function SurveyScreen({ questions, level, title, subtitle, cta, busy, error, onS
         ))}
         {error && <div className="mb-3"><Notice kind="error">{error}</Notice></div>}
         <PrimaryButton type="submit" disabled={!complete || !!busy}>{busy ? <Spinner label={busy} /> : cta}</PrimaryButton>
-        {!complete && <p className="mt-2 text-center text-sm text-[#CFC3DA]">Responde todas las preguntas para continuar.</p>}
+        {!complete && <p className="mt-2 text-center text-sm text-[#CFC3DA]">{pending === 1 ? 'Te falta 1 pregunta para continuar.' : `Te faltan ${pending} preguntas para continuar.`}</p>}
       </form>
     </main>
   )
