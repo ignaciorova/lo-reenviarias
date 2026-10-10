@@ -12,3 +12,12 @@
 - La migración es `supabase/migrations/20261010000300_tabla_puntuacion.sql`. Solo agrega una tabla, una columna y funciones; no borra nada.
 - Pruebas SQL: `supabase/tests/30_tabla_puntuacion_tests.sql`, con 22 aserciones.
 - Pruebas en el navegador: `e2e/tabla.spec.ts`. Además, `e2e/banco.spec.ts` comprueba la casilla al armar una versión.
+
+## Registro en producción
+
+- 2026-10-10 03:20 UTC: migración aplicada en Supabase con autorización de Gerardo. Verificado:
+  - `leaderboard_entries` está vacía y con RLS;
+  - anon no puede leer la tabla cruda, pero sí ejecutar `join_leaderboard`;
+  - anon no puede ejecutar `set_draft_leaderboard` ni `_alias`;
+  - la 3.0.0 sigue activa y sin tabla: un `start_session` revertido devolvió 3.0.0 con 10 noticias, y `leaderboard_status` respondió `{"enabled": false}`;
+  - el apodo de prueba que arma el servidor es «Jaguar Implacable 27 🐆».
